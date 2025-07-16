@@ -1,0 +1,105 @@
+<!-- templates\componentes\navbar.html 
+#DECORADORES PARA QUE DIFERENCIA EL GRUPO QUE EL USUARIO PERTENECE -->
+{% if user.is_authenticated %}
+    {% if group_name_singular == 'Usuario' %}
+        <nav class="fixed top-0 left-0 w-full h-12 border-b border-neutral-100 bg-zinc-900 flex items-center justify-between z-50">
+    {% elif group_name_singular == 'ADR' %}
+        <nav class="fixed top-0 left-0 w-full h-12 border-b border-neutral-100 bg-gradient-to-tr from-amber-600 to-amber-900 flex items-center justify-between z-50">
+    {% elif group_name_singular == 'Operador ADR' %}
+        <nav class="fixed top-0 left-0 w-full h-12 border-b border-neutral-100 bg-gradient-to-tr from-red-600 to-red-900 flex items-center justify-between z-50">
+    {% elif group_name_singular == 'Auxiliar Operador ADR' %}
+        <nav class="fixed top-0 left-0 w-full h-12 border-b border-neutral-100 bg-gradient-to-tr from-red-500 to-fuchsia-900 flex items-center justify-between z-50">
+    {% elif group_name_singular == 'Alumno en Práctica' %}
+        <nav class="fixed top-0 left-0 w-full h-12 border-b border-neutral-100 bg-gradient-to-tr from-gray-500 to-gray-900 flex items-center justify-between z-50">
+    {% endif %}
+{% else %}
+    <nav class="fixed top-0 left-0 w-full h-12 flex items-center justify-between z-50">
+{% endif %}
+
+ <!-- Navegación Superior -->
+    <div class="flex items-center"> <!-- Se añadió items-center para alinear el botón y el título -->
+      <button id="hamburgerButton" class="text-white p-2 mr-2 focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+      <h1 class="text-white text-md font-semibold">GESTIÓN INVENTARIO ADR</h1>
+    </div>
+    <div class="relative flex items-center space-x-4 px-4">
+      <div id="userMenuButton" class="cursor-pointer flex items-center space-x-2">
+        <span class="text-white text-sm italic mt-2">Usuario en línea: {{ user.first_name|capfirst }} {{user.last_name|capfirst}} | {{group_name_singular}}</span>
+        <img class="mx-auto w-9 h-9 rounded-full" src="{{ user.profile.image.url }}" alt="{{ user.username }}">
+      </div>
+
+      <!-- Nuevo Botón de Cerrar Sesión Directo -->
+      {% if user.is_authenticated %}
+      <form method="POST" action="{% url 'logout' %}" style="display: inline;"> <!-- Usar display:inline para que el form no rompa el layout flex -->
+        {% csrf_token %}
+        <button type="submit" class="text-white text-sm font-semibold hover:text-gray-300 px-3 py-2 rounded-md bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-opacity-50 transition ease-in-out duration-150">
+          Cerrar Sesión
+        </button>
+      </form>
+      {% endif %}
+      
+    </div>
+  </nav>
+
+  <script>
+    // Asegurarse de que el DOM está completamente cargado antes de ejecutar el script.
+    document.addEventListener('DOMContentLoaded', function() {
+      // Prevenir múltiples inicializaciones
+      if (typeof window.navbarScriptInitialized !== 'undefined') {
+        return;
+      }
+      window.navbarScriptInitialized = true;
+
+      const isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+
+      // Lógica para el menú de usuario (eliminada ya que el menú fue removido)
+      // if (isAuthenticated) {
+      //   const userMenuButton = document.getElementById('userMenuButton');
+      //   const userMenu = document.getElementById('userMenu');
+      //
+      //   if (userMenuButton && userMenu) {
+      //     userMenuButton.addEventListener('click', function(event) {
+      //       event.stopPropagation();
+      //       userMenu.classList.toggle('hidden');
+      //     });
+      //
+      //     // Cerrar menú de usuario al hacer clic fuera
+      //     document.addEventListener('click', function(event) {
+      //       if (!userMenu.classList.contains('hidden') &&
+      //           !userMenuButton.contains(event.target) &&
+      //           !userMenu.contains(event.target)) {
+      //         userMenu.classList.add('hidden');
+      //       }
+      //     });
+      //   }
+      // }
+
+      // Lógica para el botón de hamburguesa y control del sidebar
+      if (isAuthenticated) {
+        const hamburgerButton = document.getElementById('hamburgerButton');
+        const sidebar = document.getElementById('sidebar');
+
+        if (hamburgerButton && sidebar) {
+          // Abrir/cerrar sidebar con el botón de hamburguesa
+          hamburgerButton.addEventListener('click', function(event) {
+            event.stopPropagation();
+            sidebar.classList.toggle('left-[-300px]');
+            sidebar.classList.toggle('left-0');
+          });
+
+          // Cerrar sidebar al hacer clic fuera
+          document.addEventListener('click', function(event) {
+            if (sidebar.classList.contains('left-0') && // Si el sidebar está visible
+                !sidebar.contains(event.target) &&        // Y el clic no fue dentro del sidebar
+                !hamburgerButton.contains(event.target)) { // Y el clic no fue en el botón de hamburguesa
+              sidebar.classList.remove('left-0');
+              sidebar.classList.add('left-[-300px]');
+            }
+          });
+        }
+      }
+    });
+</script>

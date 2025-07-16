@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Home {% endblock %}
+
+{% block content %}
+        
+<div class="homeContainer">
+    <div class="homeContent">
+        <div class="homeTitle">
+            <img src="{% static 'imagenes/inacap_logo.png' %}" alt="imagenHome2">
+            <h1>PLATAFORMA DE INVENTARIO ADR.</h1>
+        </div>
+
+        <!-- NUEVO: Contenedor del buscador -->
+        <div class="buscadorContainer" style="margin: 20px auto; width: fit-content text-align: center; border-radius: 10px; overflow: hidden; background: #f5f5f5;">
+            <form onsubmit="submitSearch(event)" style="display: inline-flex; gap: 10px;">
+                <input type="text" id="search" placeholder="Escanea o escribe código/nombre" style="padding: 10px; width: 300px;">
+                <button type="submit" style="padding: 10px 20px; border-radius: 10px; border: none; background-color: #858181; color: #fff;">Buscar</button>
+            </form>
+        </div>
+
+        <div class="homeCard">
+            
+            <a href="{% url 'notebooks' %}" class="card">
+                <img class="cardImage" src="{% static 'imagenes/notebook.png' %}" alt="notebook">
+                <h2 class="cardTitle">Notebooks</h2>
+            </a>
+            
+            <a href="{% url 'mini_pc' %}" class="card">
+                <img class="cardImage" src="{% static 'imagenes/mini_pc.png' %}" alt="mini_pc">
+                <h2 class="cardTitle">Mini PC</h2>
+            </a>
+            <a href="{% url 'proyectores' %}" class="card">
+                <img class="cardImage" src="{% static 'imagenes/proyector.png' %}" alt="proyector">
+                <h2 class="cardTitle">Proyector</h2>
+            </a>
+            <a href="{% url 'all_in_one_selection' %}" class="card">
+                <img class="cardImage" src="{% static 'imagenes/allinone.png' %}" alt="all_in_one">
+                <h2 class="cardTitle">All In One</h2>
+            </a>
+            <a href="{% url 'monitor_list' %}" class="card">
+                <img class="cardImage" src="{% static 'imagenes/png-transparent-computer-monitors-4k-resolution-display-resolution-1080p-monitors-gadget-electronics-computer.png' %}" alt="monitor">
+                <h2 class="cardTitle">Monitores</h2>
+            </a>
+            <a href="{% url 'audio_list' %}" class="card">
+                <img class="cardImage" src="{% static 'imagenes/Speaker-sound-music-audio-equipment-loudspeaker-box-home-theater-system_335016_wh1200.png' %}" alt="audio">
+                <h2 class="cardTitle">Eventos</h2>
+            </a>
+            <a href="{% url 'tablet_list' %}" class="card">
+                <img class="cardImage" src="{% static 'imagenes/png-transparent-ipad-mini-4-ipad-pro-apple-computer-tablet-gadget-electronics-computer.png' %}" alt="tablet">
+                <h2 class="cardTitle">Tablets</h2>
+            </a>
+            <a href="{% url 'bodega_adr' %}" class="card">
+                <img class="cardImage" src="{% static 'imagenes/inacap_logo.png' %}" alt="bodega_adr">
+                <h2 class="cardTitle">Bodega ADR</h2>
+            </a>
+            <a href="{% url 'azotea_adr' %}" class="card">
+                <img class="cardImage" src="{% static 'imagenes/adr_icon.png' %}" alt="azotea_adr">
+                <h2 class="cardTitle">Azotea</h2>
+            </a>
+        </div>
+    </div>
+</div> 
+<script src="{% static 'js/search.js' %}"></script> 
+
+{% endblock %}

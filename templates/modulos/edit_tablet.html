@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Tablet{% endblock %}
+
+{% block content %}
+<div class="relative min-h-screen">
+    <div class="ml-64 mx-auto"> <!-- Asumiendo que tienes una sidebar de 64 unidades de ancho -->
+        <div class="flex flex-col md:flex-row">
+            <div class="flex-shrink-0 w-1/3 md:w-1/4 flex items-center justify-center p-4 mt-32">
+                <img src="{% static 'imagenes/png-transparent-ipad-mini-4-ipad-pro-apple-computer-tablet-gadget-electronics-computer.png' %}" alt="Imagen de la Tablet" class="w-full h-auto rounded-lg shadow-lg">
+            </div>
+            <div class="flex-1 p-4 md:p-8 bg-white shadow-md rounded-lg mt-32">
+                <h1 class="text-2xl font-bold text-gray-800 mb-6">Editar Tablet: {{ tablet.n_serie }}</h1>
+                
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                        {% if field.name != 'almacenamiento' %}
+                        <div>
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                            {% if field.name == 'activo' %}
+                                <input type="text" name="{{ field.name }}" value="{{ field.initial|default_if_none:'' }}" id="{{ field.id_for_label }}" readonly class="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-not-allowed">
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            {% if field.help_text %}
+                            <p class="mt-2 text-sm text-gray-500">{{ field.help_text }}</p>
+                            {% endif %}
+                            {% for error in field.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="flex justify-end space-x-4">
+                        <a href="{% url 'tablet_list' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            Actualizar Tablet
+                        </button>
+                    </div>
+                </form>
+                <!-- Formulario de Eliminación -->
+                <form method="post" action="{% url 'delete_tablet' model_name='tablet' pk=tablet.id %}" class="inline-block ml-4"> {# Added ml-4 for spacing #}
+                    {% csrf_token %}
+                    <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="return confirm('¿Estás seguro de que quieres eliminar esta tablet?');">
+                        Eliminar Tablet
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

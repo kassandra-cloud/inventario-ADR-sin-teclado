@@ -1,0 +1,66 @@
+/* Estilos consistentes con notebooks.html y otras vistas de activos */
+.table thead.table-header-gradient th {
+    background-color: red; /* Eliminar el fondo de color */
+    color: initial; /* Restaurar el color del texto a su valor inicial */
+    font-weight: 600;
+    font-size: 0.875rem; /* text-sm */
+    padding: 0.5rem; /* Ajustado para más espacio como en notebooks.html (py-1 es 0.25rem, px-2 es 0.5rem) */
+    text-align: left;
+    border-bottom: 1px solid #DC2626; /* Rojo 600 */
+    border-right: 1px solid #DC2626; /* Borde derecho para separar columnas del header */
+}
+.table thead.table-header-gradient th:last-child {
+    border-right: none; /* Sin borde derecho en la última celda del header */
+}
+
+/* Aplicar directamente a las celdas td dentro de tbody de cualquier tabla con la clase .table */
+.table > tbody > tr > td.table-data-cell {
+    background-color: #ccc4c4 !important; /* Gris muy claro (Tailwind gray-50) como capa de color base */
+    color: #374151;
+    font-size: 0.875rem;
+    padding: 0.5rem;
+    border: 1px solid #E5E7EB;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+    vertical-align: middle;
+}
+
+.table > tbody > tr:hover > td.table-data-cell {
+    background-color: #F3F4F6 !important; /* Un gris ligeramente más oscuro para el hover (Tailwind gray-100) */
+}
+
+.btn-ver-detalle-custom {
+    background: linear-gradient(to bottom right, #F59E0B, #B45309); /* Amber 600 a Amber 900 */
+    color: white;
+    font-size: 0.75rem; /* text-xs en Tailwind, más pequeño */
+    font-weight: 600; /* semibold */
+    padding: 0.25rem 0.5rem; /* py-1 px-2 */
+    border: none;
+    border-radius: 0.25rem; /* rounded-sm */
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    line-height: 1.5; /* Para centrar el texto verticalmente en el botón */
+    transition: background-color 0.15s ease-in-out;
+}
+.btn-ver-detalle-custom:hover {
+    background: linear-gradient(to bottom right, #D97706, #92400E); /* Amber 700 a Amber 900 más oscuro */
+    color: white;
+}
+
+.card-header-custom {
+    background-color: transparent; /* Eliminar el fondo de color */
+    border-bottom: 1px solid #E5E7EB; /* Gris 300 de Tailwind */
+}
+.card-title-custom {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600; /* semibold */
+    color: #1F2937; /* Gris 800 de Tailwind */
+}
+.search-query-text {
+    font-weight: bold;
+    color: #1D4ED8; /* Azul 700 de Tailwind, para destacar la búsqueda */
+}
+
+/* Ensure navbar flex properties are applied */

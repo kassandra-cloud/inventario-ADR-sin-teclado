@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle del Mini PC: {{ minipc.n_serie }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden">
+        <div class="bg-gray-800 text-white px-6 py-4">
+            <h1 class="text-2xl font-bold">Detalle del Mini PC: {{ minipc.activo }} - {{ minipc.n_serie }}</h1>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                    <strong class="text-gray-700">Activo:</strong>
+                    <p class="text-gray-900">{{ minipc.activo }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Marca:</strong>
+                    <p class="text-gray-900">{{ minipc.marca }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Modelo:</strong>
+                    <p class="text-gray-900">{{ minipc.modelo }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Número de Serie:</strong>
+                    <p class="text-gray-900">{{ minipc.n_serie }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">UNIVE:</strong>
+                    <p class="text-gray-900">{{ minipc.unive }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">BDO:</strong>
+                    <p class="text-gray-900">{{ minipc.bdo|default_if_none:"No especificado" }}</p>
+                </div>
+                 <div>
+                    <strong class="text-gray-700">NetBIOS:</strong>
+                    <p class="text-gray-900">{{ minipc.netbios|default_if_none:"No especificado" }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Ubicación:</strong>
+                    <p class="text-gray-900">{{ minipc.ubicacion }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Estado:</strong>
+                    <p class="text-gray-900">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                     {% if minipc.estado == 'Activo' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ minipc.estado }}
+                        </span>
+                    </p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Registrado por:</strong>
+                    <p class="text-gray-900">{{ minipc.creado_por.get_full_name|default_if_none:"Sistema" }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Fecha de Creación:</strong>
+                    <p class="text-gray-900">{{ minipc.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Última Modificación:</strong>
+                    <p class="text-gray-900">{{ minipc.fecha_modificacion|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+
+            <!-- Sección de Historial de Cambios -->
+            <div class="mt-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Historial de Cambios</h2>
+                {% if historial_cambios %}
+                    <div class="border rounded-lg overflow-hidden">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Fecha de Modificación
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Usuario
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Campo Modificado
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Valor Anterior
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Valor Nuevo
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for cambio in historial_cambios %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ cambio.fecha_modificacion|date:"d/m/Y H:i" }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ cambio.usuario.get_full_name|default_if_none:"Usuario Desconocido" }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ cambio.campo_modificado }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ cambio.valor_anterior|default_if_none:"N/A" }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ cambio.valor_nuevo|default_if_none:"N/A" }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-gray-600">No hay historial de cambios para este Mini PC.</p>
+                {% endif %}
+            </div>
+
+        </div>
+        <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+            <a href="{% url 'minipc_list' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-arrow-left mr-2"></i>Volver al Listado
+            </a>
+            {% if request.user.groups.first.name == 'ADR' or request.user.groups.first.name == 'Operadores ADR' %}
+            <a href="{% url 'edit_mini_pc' minipc.pk %}" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-edit mr-2"></i>Editar
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

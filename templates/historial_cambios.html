@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %} Historial de Cambios {% endblock %}
+
+{% block sidebar %}
+{% include 'componentes/sidebar.html' %}
+{% endblock %}
+{% load static %}
+
+{% block content %}
+<body class="">
+    <div class="container mx-auto px-2 py-2">
+        <!-- Filtros y tabla -->
+        <div class="flex flex-col md:flex-row">
+            <div class="w-full md:w-5/6 md:ml-auto">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Historial de Cambios</h1>
+            <!-- Filtros -->
+            <div class="flex items-center justify-between mb-4 buscadorContainer">
+                <!-- Formulario de filtros -->
+                <form method="get" class="flex items-center space-x-4 buscador">
+                    <!-- Filtro por usuario -->
+                    <select id="usuario" name="usuario" 
+                        class="rounded-sm border-0 bg-gray-200 py-1.5 pl-3 pr-10 text-black shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2 sm:text-sm" 
+                        onchange="this.form.submit()">
+                        <option value="todos" {% if usuario_seleccionado == 'todos' %}selected{% endif %}>Todos los usuarios</option>
+                        {% for user in usuarios %}
+                            <option value="{{ user.username }}" {% if usuario_seleccionado == user.username %}selected{% endif %}>
+                                {{ user.get_full_name }} ({{ user.username }})
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Filtro por fecha inicio -->
+                    <input id="fecha_inicio" type="date" name="fecha_inicio" value="{{ fecha_inicio }}" 
+                        class="rounded-sm border-0 bg-gray-200 py-1.5 pl-3 pr-10 text-black shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2 sm:text-sm" 
+                        onchange="this.form.submit()">
+
+                    <!-- Filtro por fecha fin -->
+                    <input id="fecha_fin" type="date" name="fecha_fin" value="{{ fecha_fin }}" 
+                        class="rounded-sm border-0 bg-gray-200 py-1.5 pl-3 pr-10 text-black shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2 sm:text-sm" 
+                        onchange="this.form.submit()">
+
+                    <!-- Botón "Ver todos" -->
+                    <button type="button" 
+                        onclick="window.location.href=window.location.pathname"
+                        class="ml-4 px-3 py-1.5 bg-gradient-to-br from-gray-600 to-gray-800 text-white rounded-sm hover:from-gray-700 hover:to-gray-900">
+                        Ver todos
+                    </button>
+                </form>
+
+                {% if historial %}
+                <!-- Botón "Descargar Excel" -->
+                <a href="{% url 'descargar_excel' 'historialcambios' %}" 
+                class="rounded-sm bg-gradient-to-br from-green-600 to-green-900 px-2 py-2 text-white text-sm font-semibold shadow-sm hover:bg-green-400">
+                Descargar Excel
+                </a>
+                {% endif %}
+            </div>
+
+                {% if historial %}
+                <!-- Tabla -->
+                <div class="table-container w-full">
+                    <table class="min-w-full table-fixed text-center font-sans">
+                        <thead class="border-b font-sans font-semibold bg-gradient-to-tr from-red-500 to-red-700">
+                            <tr>
+                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">Usuario</th>
+                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">Modelo</th>
+                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">ID Objeto</th>
+                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">Campo Modificado</th>
+                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">Valor Anterior</th>
+                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">Valor Nuevo</th>
+                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">Fecha / Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cambio in historial %}
+                                <tr class="{% cycle 'bg-blue-50' 'bg-white' %} border-b border-neutral-100 text-gray-700">
+                                    <td class="text-start text-black px-2 py-1">{{ cambio.usuario }}</td>
+                                    <td class="text-start text-black px-2 py-1">{{ cambio.modelo }}</td>
+                                    <td class="text-start text-black px-2 py-1">
+                                        {% if cambio.objeto_id %}
+                                            {% with cambio.modelo|lower as modelo %}
+                                                {% if modelo == 'allinone' %}
+                                                    <a href="{% url 'all_in_one' %}?search={{ cambio.objeto_id }}&search_by_pk=true" class="text-blue-500 underline">
+                                                        {{ cambio.objeto_id }}
+                                                    </a>
+                                                {% elif modelo == 'allinoneadmins' %}
+                                                    <a href="{% url 'all_in_one_adm' %}?search={{ cambio.objeto_id }}&search_by_pk=true" class="text-blue-500 underline">
+                                                        {{ cambio.objeto_id }}
+                                                    </a>
+                                                {% elif modelo == 'notebook' %}
+                                                    <a href="{% url 'notebooks' %}?search={{ cambio.objeto_id }}&search_by_pk=true" class="text-blue-500 underline">
+                                                        {{ cambio.objeto_id }}
+                                                    </a>
+                                                {% elif modelo == 'minipc' %}
+                                                    <a href="{% url 'mini_pc' %}?search={{ cambio.objeto_id }}&search_by_pk=true" class="text-blue-500 underline">
+                                                        {{ cambio.objeto_id }}
+                                                    </a>
+                                                {% elif modelo == 'proyectores' %}
+                                                    <a href="{% url 'proyectores' %}?search={{ cambio.objeto_id }}&search_by_pk=true" class="text-blue-500 underline">
+                                                        {{ cambio.objeto_id }}
+                                                    </a>
+                                                {% elif modelo == 'azotea' %}
+                                                    <a href="{% url 'azotea_adr' %}?search={{ cambio.objeto_id }}&search_by_pk=true" class="text-blue-500 underline">
+                                                        {{ cambio.objeto_id }}
+                                                    </a>
+                                                {% elif modelo == 'bodegaadr' %}
+                                                    <a href="{% url 'bodega_adr' %}?search={{ cambio.objeto_id }}&search_by_pk=true" class="text-blue-500 underline">
+                                                        {{ cambio.objeto_id }}
+                                                    </a>
+                                                {% else %}
+                                                    {{ cambio.objeto_id }}
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% else %}
+                                            <span class="text-gray-500">Sin ID</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="text-start text-black px-2 py-1">{{ cambio.campo_modificado }}</td>
+                                    <td class="text-start text-black px-2 py-1">{{ cambio.valor_anterior }}</td>
+                                    <td class="text-start text-black px-2 py-1">{{ cambio.valor_nuevo }}</td>
+                                    <td class="text-start text-black px-2 py-1">{{ cambio.fecha_modificacion|date:"d-m-Y H:i:s" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-gray-500 px-2 py-4">No hay cambios registrados</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+                </div>
+
+                {% include 'componentes/paginationB.html' %}
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}
