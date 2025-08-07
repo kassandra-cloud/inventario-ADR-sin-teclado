@@ -1929,7 +1929,8 @@ class AddMiniPCView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
                     'bdo': 'El BDO es requerido'
                 }
                 for field, error_message in required_fields.items():
-                    if not form.cleaned_data.get(field):
+                    value = form.cleaned_data.get(field)
+                    if value in [None, '']:  # Permite 0 como válido
                         form.add_error(field, error_message)
                         return self.form_invalid(form)
 
@@ -2964,55 +2965,56 @@ class AddMonitorView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
                 unive = form.cleaned_data.get('unive')
 
                 if Monitor.objects.filter(n_serie=n_serie).exists():
-                    messages.error(self.request, f"El número de serie '{n_serie}' ya existe.")
+                    form.add_error('n_serie', 'Este número de serie ya está registrado.')
                     return self.form_invalid(form)
-                if Monitor.objects.filter(unive=unive).exists():
-                    messages.error(self.request, f"El código UNIVE '{unive}' ya existe.")
+
+                if unive != "0" and Monitor.objects.filter(unive=unive).exists():
+                    form.add_error('unive', 'Este código UNIVE ya está registrado.')
+                    return self.form_invalid(form)
+
+                bdo = form.cleaned_data.get('bdo')
+                if bdo != 0 and Monitor.objects.filter(bdo=bdo).exists():
+                    form.add_error('bdo', 'Este código BDO ya está registrado.')
                     return self.form_invalid(form)
 
                 monitor = form.save(commit=False)
                 monitor.creado_por = self.request.user
                 monitor.save()
-                
-                # Lógica de notificación por correo
-                accion = "Nuevo Monitor Agregado"
-                nombre_completo_usuario = self.request.user.get_full_name()
-                mensaje = f"""
-                El usuario {nombre_completo_usuario} ha agregado un nuevo monitor al sistema.
 
-                Acción: {accion}
-                Activo: {monitor.activo}
-                Marca: {monitor.marca}
-                Modelo: {monitor.modelo}
-                Número de Serie: {monitor.n_serie}
-                UNIVE: {monitor.unive}
-                Ubicación: {monitor.ubicacion}
-                """
                 try:
                     enviar_notificacion_asunto(
                         asunto="Nuevo Monitor Registrado en el Sistema",
-                        mensaje=mensaje,
+                        mensaje=f"""
+                        El usuario {self.request.user.get_full_name()} ha agregado un nuevo monitor al sistema.
+
+                        Activo: {monitor.activo}
+                        Marca: {monitor.marca}
+                        Modelo: {monitor.modelo}
+                        N° Serie: {monitor.n_serie}
+                        UNIVE: {monitor.unive}
+                        BDO: {monitor.bdo}
+                        Ubicación: {monitor.ubicacion}
+                        """,
                         destinatarios=settings.EMAIL_RECIPIENTS
                     )
                 except Exception as e:
-                    messages.error(self.request, f'Error al enviar el correo de notificación: {str(e)}')
+                    messages.error(self.request, f'Error al enviar el correo: {str(e)}')
 
                 messages.success(self.request, 'Monitor agregado exitosamente')
                 return super().form_valid(form)
-        except IntegrityError:
+
+        except IntegrityError as e:
+            print(f'INTEGRITY ERROR: {e}')
             messages.error(self.request, 'Error de integridad de datos al guardar el monitor.')
             return self.form_invalid(form)
+
         except Exception as e:
+            print(f'ERROR GENERAL: {e}')
             messages.error(self.request, f'Error inesperado al agregar el monitor: {str(e)}')
             return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        # Imprimir errores del formulario para depuración
-        for field, errors in form.errors.items():
-            for error in errors:
-                messages.error(self.request, f"Error en el campo '{form.fields[field].label if field in form.fields else field}': {error}")
-        return super().form_invalid(form)
-
+        # Esto ya no debería ser necesario, pero lo dejamos por seguridad absoluta
+        return self.form_invalid(form)
 @add_group_name_to_context
 class EditMonitorView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """Vista para editar Monitor existente"""
@@ -3097,45 +3099,75 @@ class MonitorDetailView(LoginRequiredMixin, DetailView):
 
 @add_group_name_to_context
 class AudioView(LoginRequiredMixin, ListView):
-    """Vista para listar todos los Equipos de Audio"""
+    """
+    Vista para listar Equipos de Audio, con búsqueda, filtro por estado,
+    paginación y botones de editar/eliminar según el grupo del usuario.
+    """
     model = Audio
-    template_name = 'modulos/audio.html' # Necesitaremos crear esta plantilla
-    context_object_name = 'audios'
+    template_name = 'modulos/audio.html'
+    context_object_name = 'page_obj'
     paginate_by = 15
 
     def get_queryset(self):
-        page_obj, _, _ = filtrar_y_paginar(
-            self.request,
-            self.model, # Usamos self.model que es la clase Audio
-            ['activo', 'marca', 'modelo', 'n_serie', 'unive', 'bdo', 'tipo_audio', 'ubicacion', 'creado_por__first_name', 'creado_por__last_name'],
-            self.paginate_by
-        )
-        return page_obj.object_list
+        qs = super().get_queryset()
+
+        # 1) Búsqueda global
+        q = self.request.GET.get('search', '').strip()
+        if q:
+            qs = qs.filter(
+                Q(activo__icontains=q) |
+                Q(marca__icontains=q) |
+                Q(modelo__icontains=q) |
+                Q(n_serie__icontains=q) |
+                Q(unive__icontains=q) |
+                Q(bdo__icontains=q) |
+                Q(ubicacion__icontains=q) |
+                Q(creado_por__first_name__icontains=q) |
+                Q(creado_por__last_name__icontains=q)
+            )
+
+        # 2) Filtro por estado (case-insensitive)
+        estado = self.request.GET.get('estado', '').strip()
+        if estado:
+            qs = qs.filter(estado__iexact=estado)
+
+        return qs.order_by('n_serie')
 
     def get_context_data(self, **kwargs):
+        # Esto llama al get_context_data del decorator y de ListView
         context = super().get_context_data(**kwargs)
-        context['model_name'] = 'audio'
-        context['model_name_plural'] = 'equipos de audio'
-        page_obj, filter_ubicacion_actual, ubicaciones_disponibles = filtrar_y_paginar(
-            self.request,
-            self.model,
-            ['activo', 'marca', 'modelo', 'n_serie', 'unive', 'bdo', 'tipo_audio', 'ubicacion', 'creado_por__first_name', 'creado_por__last_name'],
-            self.paginate_by
-        )
-        context['page_obj'] = page_obj
-        context['filter_ubicacion_actual'] = filter_ubicacion_actual
-        context['ubicaciones_disponibles'] = ubicaciones_disponibles
-        context['add_url'] = 'add_audio'  # Nombre de la URL para agregar audio
-        context['nombre_activo'] = 'Equipo de Audio' # Nombre del activo para el botón
-        return context
 
+        # Asegurarnos de que “group_name_singular” está en el contexto
+        if 'group_name_singular' not in context:
+            # Por ejemplo, tomar el primer grupo del usuario
+            context['group_name_singular'] = (
+                self.request.user.groups.first().name
+                if self.request.user.groups.exists()
+                else ''
+            )
+
+        # Paginación manual: aplicamos get_queryset() ya filtrado
+        qs = self.get_queryset()
+        paginator = Paginator(qs, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        context['page_obj']   = paginator.get_page(page_number)
+        context['paginator']  = paginator
+
+        # Variables adicionales para la plantilla
+        context.update({
+            'model_name':          'audio',
+            'model_name_plural':   'equipos de audio',
+            'add_url':             'add_audio',
+            'nombre_activo':       'Equipo de Audio',
+        })
+        return context
 @add_group_name_to_context
 class AddAudioView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     """Vista para agregar nuevo Equipo de Audio"""
     model = Audio
-    form_class = AudioForm # Necesitaremos crear este formulario
-    template_name = 'modulos/add_audio.html' # Necesitaremos crear esta plantilla
-    success_url = reverse_lazy('audio_list') # Necesitaremos crear esta URL
+    form_class = AudioForm
+    template_name = 'modulos/add_audio.html'
+    success_url = reverse_lazy('audio_list')
 
     def test_func(self):
         return self.request.user.groups.filter(name__in=['ADR', 'Operadores ADR']).exists()
@@ -3153,54 +3185,59 @@ class AddAudioView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             with transaction.atomic():
                 n_serie = form.cleaned_data.get('n_serie')
                 unive = form.cleaned_data.get('unive')
+                bdo = form.cleaned_data.get('bdo')
 
+                # Validación de duplicados
                 if Audio.objects.filter(n_serie=n_serie).exists():
-                    messages.error(self.request, f"El número de serie '{n_serie}' ya existe.")
-                    return self.form_invalid(form)
-                if Audio.objects.filter(unive=unive).exists():
-                    messages.error(self.request, f"El código UNIVE '{unive}' ya existe.")
+                    form.add_error('n_serie', 'Este número de serie ya está registrado.')
                     return self.form_invalid(form)
 
+                # Validar UNIVE solo si no es "0" o 0
+                if str(unive) not in ["0", 0, "", None] and Audio.objects.filter(unive=unive).exists():
+                    form.add_error('unive', 'Este código UNIVE ya existe para un Equipo de Audio.')
+                    return self.form_invalid(form)
+                if bdo != 0 and Audio.objects.filter(bdo=bdo).exists():
+                    form.add_error('bdo', 'Este código BDO ya está registrado.')
+                    return self.form_invalid(form)
+
+                # Guardar con usuario
                 audio = form.save(commit=False)
                 audio.creado_por = self.request.user
                 audio.save()
-                
-                accion = "Nuevo Equipo de Audio Agregado"
-                nombre_completo_usuario = self.request.user.get_full_name()
-                mensaje = f"""
-                El usuario {nombre_completo_usuario} ha agregado un nuevo equipo de audio al sistema.
 
-                Acción: {accion}
-                Activo: {audio.activo}
-                Marca: {audio.marca}
-                Modelo: {audio.modelo}
-                Número de Serie: {audio.n_serie}
-                UNIVE: {audio.unive}
-                Ubicación: {audio.ubicacion}
-                """
                 try:
                     enviar_notificacion_asunto(
                         asunto="Nuevo Equipo de Audio Registrado",
-                        mensaje=mensaje,
+                        mensaje=f"""
+                        El usuario {self.request.user.get_full_name()} ha agregado un nuevo equipo de audio al sistema.
+
+                        Activo: {audio.activo}
+                        Marca: {audio.marca}
+                        Modelo: {audio.modelo}
+                        N° Serie: {audio.n_serie}
+                        UNIVE: {audio.unive}
+                        BDO: {audio.bdo}
+                        Ubicación: {audio.ubicacion}
+                        """,
                         destinatarios=settings.EMAIL_RECIPIENTS
                     )
                 except Exception as e:
-                    messages.error(self.request, f'Error al enviar el correo de notificación: {str(e)}')
+                    messages.error(self.request, f'Error al enviar el correo: {str(e)}')
 
                 messages.success(self.request, 'Equipo de Audio agregado exitosamente')
                 return super().form_valid(form)
-        except IntegrityError:
+
+        except IntegrityError as e:
+            print(f'INTEGRITY ERROR: {e}')
             messages.error(self.request, 'Error de integridad de datos al guardar el equipo de audio.')
             return self.form_invalid(form)
+
         except Exception as e:
+            print(f'ERROR GENERAL: {e}')
             messages.error(self.request, f'Error inesperado al agregar el equipo de audio: {str(e)}')
             return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        for field, errors in form.errors.items():
-            for error in errors:
-                messages.error(self.request, f"Error en el campo '{form.fields[field].label if field in form.fields else field}': {error}")
-        return super().form_invalid(form)
+        return self.form_invalid(form)
 
 @add_group_name_to_context
 class EditAudioView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -3284,32 +3321,54 @@ class AudioDetailView(LoginRequiredMixin, DetailView):
 
 @add_group_name_to_context
 class TabletView(LoginRequiredMixin, ListView):
-    """Vista para listar todas las Tablets"""
     model = Tablet
-    template_name = 'modulos/tablet.html' # Necesitaremos crear esta plantilla
-    context_object_name = 'tablets'
+    template_name = 'modulos/tablet.html'
+    context_object_name = 'page_obj'   # ahora page_obj, para coincidir con la plantilla
     paginate_by = 15
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        # 1) Búsqueda global
+        q = self.request.GET.get('search', '').strip()
+        if q:
+            qs = qs.filter(
+                Q(activo__icontains=q)       |
+                Q(marca__icontains=q)        |
+                Q(modelo__icontains=q)       |
+                Q(n_serie__icontains=q)      |
+                Q(unive__icontains=q)        |
+                Q(bdo__icontains=q)          |
+                Q(netbios__icontains=q)      |
+                Q(ubicacion__icontains=q)    |
+                Q(creado_por__first_name__icontains=q) |
+                Q(creado_por__last_name__icontains=q)
+            )
+
+        # 2) Filtro por estado
+        estado = self.request.GET.get('estado', '')
+        if estado in ('Operativo', 'Dañado', 'Mala'):
+            qs = qs.filter(estado=estado)
+
+        return qs.order_by('n_serie')
+
     def get_context_data(self, **kwargs):
+        # No llamamos a filtrar_y_paginar, sino al ListView + Paginator manual
         context = super().get_context_data(**kwargs)
-        context['model_name'] = 'tablet'
-        context['model_name_plural'] = 'tablets'
-        # La paginación y el queryset se manejan automáticamente por ListView
-        # Solo necesitamos pasar el page_obj y paginator al contexto si es necesario para algo más que la paginación por defecto
-        # Sin embargo, el template pagination.html espera page_obj y paginator
-        # Reutilizamos filtrar_y_paginar para obtener los datos de paginación y filtro
-        page_obj, filter_ubicacion_actual, ubicaciones_disponibles = filtrar_y_paginar(
-            self.request,
-            self.model,
-            ['activo', 'marca', 'modelo', 'n_serie', 'unive', 'bdo', 'netbios', 'ubicacion', 'creado_por__first_name', 'creado_por__last_name'],
-            self.paginate_by
-        )
-        context['page_obj'] = page_obj
-        context['paginator'] = page_obj.paginator # Aseguramos que el paginator también esté en el contexto
-        context['filter_ubicacion_actual'] = filter_ubicacion_actual
-        context['ubicaciones_disponibles'] = ubicaciones_disponibles
-        context['add_url'] = 'add_tablet'  # Nombre de la URL para agregar tablet
-        context['nombre_activo'] = 'Tablet' # Nombre del activo para el botón
+
+        # Ya tenemos en context['page_obj'] el page_obj creado por ListView,
+        # pero vamos a sobreescribirlo para forzar el queryset filtrado:
+        qs = self.get_queryset()
+        paginator = Paginator(qs, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context.update({
+            'page_obj': page_obj,
+            'paginator': paginator,
+            'add_url': 'add_tablet',
+            'nombre_activo': 'Tablet',
+        })
         return context
 
 @add_group_name_to_context
@@ -3339,56 +3398,50 @@ class AddTabletView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
                 netbios = form.cleaned_data.get('netbios')
 
                 if Tablet.objects.filter(n_serie=n_serie).exists():
-                    messages.error(self.request, f"El número de serie '{n_serie}' ya existe.")
+                    form.add_error('n_serie', 'Este número de serie ya está registrado.')
                     return self.form_invalid(form)
-                if Tablet.objects.filter(unive=unive).exists():
-                    messages.error(self.request, f"El código UNIVE '{unive}' ya existe.")
+                if unive != "0" and Tablet.objects.filter(unive=unive).exists():
+                    form.add_error('unive', 'Este código UNIVE ya está registrado.')
                     return self.form_invalid(form)
+
                 if netbios and Tablet.objects.filter(netbios=netbios).exists():
-                     messages.error(self.request, f"El NetBIOS '{netbios}' ya existe.")
-                     return self.form_invalid(form)
+                    form.add_error('netbios', 'Este NetBIOS ya está registrado.')
+                    return self.form_invalid(form)
 
                 tablet = form.save(commit=False)
                 tablet.creado_por = self.request.user
                 tablet.save()
-                
-                accion = "Nueva Tablet Agregada"
-                nombre_completo_usuario = self.request.user.get_full_name()
-                mensaje = f"""
-                El usuario {nombre_completo_usuario} ha agregado una nueva tablet al sistema.
 
-                Acción: {accion}
-                Activo: {tablet.activo}
-                Marca: {tablet.marca}
-                Modelo: {tablet.modelo}
-                Número de Serie: {tablet.n_serie}
-                UNIVE: {tablet.unive}
-                NetBIOS: {tablet.netbios}
-                Ubicación: {tablet.ubicacion}
-                """
+                # Notificación por correo
                 try:
                     enviar_notificacion_asunto(
                         asunto="Nueva Tablet Registrada",
-                        mensaje=mensaje,
+                        mensaje=f"""
+                        El usuario {self.request.user.get_full_name()} ha agregado una nueva tablet al sistema.
+
+                        Activo: {tablet.activo}
+                        Marca: {tablet.marca}
+                        Modelo: {tablet.modelo}
+                        Número de Serie: {tablet.n_serie}
+                        UNIVE: {tablet.unive}
+                        NetBIOS: {tablet.netbios}
+                        Ubicación: {tablet.ubicacion}
+                        """,
                         destinatarios=settings.EMAIL_RECIPIENTS
                     )
                 except Exception as e:
-                    messages.error(self.request, f'Error al enviar el correo de notificación: {str(e)}')
+                    messages.error(self.request, f'Error al enviar el correo: {str(e)}')
 
                 messages.success(self.request, 'Tablet agregada exitosamente')
                 return super().form_valid(form)
-        except IntegrityError:
+
+        except IntegrityError as e:
             messages.error(self.request, 'Error de integridad de datos al guardar la tablet.')
             return self.form_invalid(form)
+
         except Exception as e:
             messages.error(self.request, f'Error inesperado al agregar la tablet: {str(e)}')
             return self.form_invalid(form)
-
-    def form_invalid(self, form):
-        for field, errors in form.errors.items():
-            for error in errors:
-                messages.error(self.request, f"Error en el campo '{form.fields[field].label if field in form.fields else field}': {error}")
-        return super().form_invalid(form)
 
 @add_group_name_to_context
 class EditTabletView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):

@@ -20,9 +20,9 @@
                 </div>
                 
                 <!-- Contenedor del formulario (lado derecho) -->
-                <div class="flex-1 p-4 md:p-8 bg-gradient-to-r from-red-900 to-red-700 rounded-lg shadow-lg relative mt-32">
+                <div class="flex-1 p-6 md:p-8 bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-xl relative mt-32">
                     <!-- Título del formulario -->
-                    <h2 class="text-white text-2xl font-sans mb-4">Registro Nuevo Proyector</h2>
+                    <h2 class="text-black text-2xl font-sans mb-4">Registro Nuevo Proyector</h2>
                     
                     <!-- Formulario -->
                     <form method="POST" action="{% url 'add_proyector' %}">
@@ -32,14 +32,14 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <!-- Campo Activo (solo lectura) -->
                             <div>
-                                <label for="activo" class="block text-white text-sm font-sans italic mb-1">Activo</label>
+                                <label for="activo" class="block text-black text-sm font-sans italic mb-1">Activo</label>
                                 <input type="text" name="activo" id="activo" 
                                     value="Proyector"
                                     readonly
                                     class="w-full rounded-md border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed"
                                     placeholder="Activo">
                                 {% if form.activo.errors %}
-                                    <div class="text-yellow-300 text-sm mt-1">
+                                    <div class="text-orange-600 text-sm mt-1">
                                         {{ form.activo.errors|join:", " }}
                                     </div>
                                 {% endif %}
@@ -47,13 +47,13 @@
 
                             <!-- Campo Estado -->
                             <div>
-                                <label for="estado" class="block text-white text-sm font-sans italic mb-1">Estado</label>
+                                <label for="estado" class="block text-black text-sm font-sans italic mb-1">Estado</label>
                                 <input type="text" name="estado" id="estado"
                                     value="{{ form.estado.value|default:'' }}"
                                     class="w-full rounded-md border-gray-300 shadow-sm"
                                     placeholder="Estado">
                                 {% if form.estado.errors %}
-                                    <div class="text-yellow-300 text-sm mt-1">
+                                    <div class="text-orange-600 text-sm mt-1">
                                         {{ form.estado.errors|join:", " }}
                                     </div>
                                 {% endif %}
@@ -64,13 +64,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <!-- Campo Marca -->
                             <div>
-                                <label for="marca" class="block text-white text-sm font-sans italic mb-1">Marca</label>
+                                <label for="marca" class="block text-black text-sm font-sans italic mb-1">Marca</label>
                                 <input type="text" name="marca" id="marca"
                                     value="{{ form.marca.value|default:'' }}"
                                     class="w-full rounded-md border-gray-300 shadow-sm"
                                     placeholder="Marca">
                                 {% if form.marca.errors %}
-                                    <div class="text-yellow-300 text-sm mt-1">
+                                    <div class="text-orange-600 text-sm mt-1">
                                         {{ form.marca.errors|join:", " }}
                                     </div>
                                 {% endif %}
@@ -78,13 +78,13 @@
 
                             <!-- Campo Modelo -->
                             <div>
-                                <label for="modelo" class="block text-white text-sm font-sans italic mb-1">Modelo</label>
+                                <label for="modelo" class="block text-black text-sm font-sans italic mb-1">Modelo</label>
                                 <input type="text" name="modelo" id="modelo" 
                                     value="{{ form.modelo.value|default:'' }}"
                                     class="w-full rounded-md border-gray-300 shadow-sm"
                                     placeholder="Modelo">
                                 {% if form.modelo.errors %}
-                                    <div class="text-yellow-300 text-sm mt-1">
+                                    <div class="text-orange-600 text-sm mt-1">
                                         {{ form.modelo.errors|join:", " }}
                                     </div>
                                 {% endif %}
@@ -93,13 +93,13 @@
 
                         <!-- Tercera fila: Número de Serie -->
                         <div class="mb-4">
-                            <label for="n_serie" class="block text-white text-sm font-sans italic mb-1">Número de Serie</label>
+                            <label for="n_serie" class="block text-black text-sm font-sans italic mb-1">Número de Serie</label>
                             <input type="text" name="n_serie" id="n_serie" 
                                 value="{{ form.n_serie.value|default:'' }}"
                                 class="w-full rounded-md border-gray-300 shadow-sm"
                                 placeholder="Número de Serie">
                             {% if form.n_serie.errors %}
-                                <div class="text-yellow-300 text-sm mt-1">
+                                <div class="text-orange-600 text-sm mt-1">
                                     {{ form.n_serie.errors|join:", " }}
                                 </div>
                             {% endif %}
@@ -108,13 +108,13 @@
 
                         <!-- Quinta fila: Ubicación -->
                         <div class="mb-4">
-                            <label for="ubicacion" class="block text-white text-sm font-sans italic mb-1">Ubicación</label>
+                            <label for="ubicacion" class="block text-black text-sm font-sans italic mb-1">Ubicación</label>
                             <input type="text" name="ubicacion" id="ubicacion"
                                 value="{{ form.ubicacion.value|default:'' }}"
                                 class="w-full rounded-md border-gray-300 shadow-sm"
                                 placeholder="Ubicación">
                             {% if form.ubicacion.errors %}
-                                <div class="text-yellow-300 text-sm mt-1">
+                                <div class="text-orange-600 text-sm mt-1">
                                     {{ form.ubicacion.errors|join:", " }}
                                 </div>
                             {% endif %}
@@ -122,12 +122,13 @@
                         
                         <!-- Contenedor de los botones Guardar y Regresar -->
                         <div class="flex justify-between mt-6 w-full">
-                            <button type="submit" class="bg-red-700 hover:bg-red-600 text-white font-medium py-2 px-4 rounded transition duration-200 w-32">
+                            <a href="{% url 'proyectores' %}" class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
+                                 <i class="fas fa-arrow-left"></i>
+                            </a>
+                            <button type="submit" class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
                                 Guardar
                             </button>
-                            <a href="{% url 'proyectores' %}" class="bg-gray-400 hover:bg-gray-300 text-white font-medium py-2 px-4 rounded transition duration-200 w-32 text-center">
-                                Regresar
-                            </a>
+                            
                         </div>
                     </form>
 

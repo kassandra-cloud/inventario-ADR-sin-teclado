@@ -1,63 +1,80 @@
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.views import LoginView
-from .forms import CustomAuthenticationForm
-from django.contrib import messages # Import messages
-from django.contrib.auth import get_user_model # Import get_user_model
-from .models import LoginAttempt # Import LoginAttempt
-from django.utils import timezone # Import timezone
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
-User = get_user_model() # Get the User model
+from .forms import CustomAuthenticationForm
+from .models import LoginAttempt
+
+User = get_user_model()
+
+# Lista local de destinatarios (puedes moverla a settings si lo prefieres)
+EMAIL_RECIPIENTS = [
+    'kramosv@inacap.cl',
+    'kassramosveg@gmail.com',
+]
 
 class CustomLoginView(LoginView):
     authentication_form = CustomAuthenticationForm
-    template_name = 'registration/login.html' # Asegúrate de que esta plantilla exista o ajústala
+    template_name = 'registration/login.html'
 
     def form_invalid(self, form):
-        """Handle invalid login attempts."""
         username = form.cleaned_data.get('username')
         if username:
             try:
                 user = User.objects.get(username=username)
-                login_attempt, created = LoginAttempt.objects.get_or_create(user=user)
+                login_attempt, _ = LoginAttempt.objects.get_or_create(user=user)
 
+                # Si ya está bloqueado, avisamos y salimos
                 if login_attempt.is_locked():
                     messages.error(self.request, "Tu cuenta está bloqueada. Inténtalo de nuevo más tarde.")
-                    return super().form_invalid(form) # Prevent further processing if locked
+                    return super().form_invalid(form)
 
+                # Incrementamos contador
                 login_attempt.increment_failed_attempts()
 
+                # Al segundo fallo, enviamos correo
+                if login_attempt.failed_attempts == 2:
+                    print("🚀 ¡Llegué al segundo fallo! Enviando correo…")  
+                    subject = f"[Alerta] 2 intentos fallidos de {username}"
+                    body = (
+                        f"Usuario: {username}\n"
+                        f"IP: {self.request.META.get('REMOTE_ADDR')}\n"
+                        f"Hora: {timezone.localtime().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                        "Se han registrado 2 intentos fallidos de inicio de sesión."
+                    )
+                    send_mail(
+                        subject,
+                        body,
+                        settings.DEFAULT_FROM_EMAIL,
+                        EMAIL_RECIPIENTS,      # **IMPORTANTE:** debe ser siempre una lista
+                        fail_silently=False,
+                    )
+                    messages.warning(
+                        self.request,
+                        "Contraseña incorrecta. Se ha enviado un aviso al equipo de seguridad."
+                    )
+
+                # Al tercer fallo o si se bloquea, informamos de bloqueo
                 if login_attempt.is_locked():
-                    # Modificar el mensaje para que el JavaScript pueda parsear el tiempo de bloqueo
-                    lockout_duration_minutes = 5 # Debe coincidir con el timedelta en models.py
-                    messages.error(self.request, f"Demasiados intentos fallidos. Tu cuenta ha sido bloqueada. Por favor, inténtelo de nuevo en {lockout_duration_minutes} minutos y 0 segundos.")
-                elif login_attempt.failed_attempts >= 2: # Warning before lockout (2 failed attempts + current failed = 3 total)
-                     messages.warning(self.request, "Contraseña incorrecta. Tienes 1 intento restante antes de que tu cuenta sea bloqueada.")
-                else:
+                    messages.error(
+                        self.request,
+                        "Demasiados intentos fallidos. Tu cuenta ha sido bloqueada por 5 minutos."
+                    )
+                elif login_attempt.failed_attempts == 1:
+                    # Mensaje genérico en el primer fallo
                     messages.error(self.request, "Contraseña incorrecta.")
 
             except User.DoesNotExist:
-                # Handle cases where the username doesn't exist (optional, could reveal valid usernames)
                 messages.error(self.request, "Usuario o contraseña incorrectos.")
             except Exception as e:
-                # Log the exception for debugging
-                print(f"Error handling login attempt for {username}: {e}")
+                # Aquí podrías loguear e incluso grabar e en sentry, etc.
                 messages.error(self.request, "Ocurrió un error durante el inicio de sesión.")
 
         return super().form_invalid(form)
 
-    def form_valid(self, form):
-        """Handle successful login attempts."""
-        user = form.get_user()
-        try:
-            login_attempt = LoginAttempt.objects.get(user=user)
-            login_attempt.reset_attempts()
-        except LoginAttempt.DoesNotExist:
-            # No login attempt record exists, which is fine for a successful login
-            pass
-        except Exception as e:
-            # Log the exception for debugging
-            print(f"Error resetting login attempt for {user.username}: {e}")
-
-        return super().form_valid(form)
 # # accounts/views.py
 # from django.views.generic import ListView, UpdateView, DeleteView
 # from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin

@@ -866,8 +866,14 @@ class AudioForm(forms.ModelForm):
 
     def clean_unive(self):
         unive = self.cleaned_data.get('unive')
+
+        # Permitir explícitamente valores 0 o "0" sin validar duplicados
+        if str(unive) in ["0", "", None]:
+            return unive
+
         if Audio.objects.exclude(id=self.instance.id).filter(unive=unive).exists():
             raise forms.ValidationError('Este código UNIVE ya existe para un Equipo de Audio.')
+
         return unive
 
 
@@ -916,14 +922,21 @@ class TabletForm(forms.ModelForm):
         
     def clean_unive(self):
         unive = self.cleaned_data.get('unive')
-        if Tablet.objects.exclude(id=self.instance.id).filter(unive=unive).exists():
+        if unive != "0" and Tablet.objects.exclude(id=self.instance.id).filter(unive=unive).exists():
             raise forms.ValidationError('Este código UNIVE ya existe para una Tablet.')
         return unive
     
     def clean_netbios(self):
         netbios = self.cleaned_data.get('netbios')
-        if netbios and Tablet.objects.exclude(id=self.instance.id).filter(netbios=netbios).exists():
+
+        # Permitir vacío o valores irrelevantes
+        if not netbios or netbios.strip() in ["0", "None"]:
+            return None
+
+        # Verificar duplicados
+        if Tablet.objects.exclude(id=self.instance.id).filter(netbios=netbios).exists():
             raise forms.ValidationError('Este NetBIOS ya existe para una Tablet.')
+
         return netbios
 
     def clean_activo(self):

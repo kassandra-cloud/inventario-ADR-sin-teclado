@@ -2,6 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django.conf import settings
 from accounts.models import Profile
+from django.core.exceptions import ValidationError
 from .opciones import (
     opciones_sala_All_In_One, opciones_estado, opciones_marca_all_in_one,
     opciones_ubicacion_all_in_one_admin, opciones_marca_notebook,
@@ -38,6 +39,35 @@ class EquipoInformatico(ActivoBase):
 
     class Meta:
         abstract = True
+
+    def clean(self):
+        super().clean()
+
+        unive = str(self.unive).strip() if self.unive not in [None, ''] else '0'
+        bdo = str(self.bdo).strip() if self.bdo not in [None, ''] else '0'
+
+        if unive == '0' and bdo == '0':
+            return
+
+        model_class = self.__class__
+        qs = model_class.objects.exclude(pk=self.pk)
+
+        if bdo != '0' and qs.filter(bdo=bdo).exists():
+            raise ValidationError({'bdo': "Este código BDO ya está registrado."})
+
+        if unive != '0' and qs.filter(unive=unive).exists():
+            raise ValidationError({'unive': "Este código UNIVE ya está registrado."})
+
+        if unive == '0' and bdo != '0' and qs.filter(bdo=bdo).exists():
+            raise ValidationError({'bdo': "Este BDO ya está registrado y el UNIVE es 0. No se permite."})
+
+        if bdo == '0' and unive != '0' and qs.filter(unive=unive).exists():
+            raise ValidationError({'unive': "Este UNIVE ya está registrado y el BDO es 0. No se permite."})
+
+    # Si ambos son 0, permitir sin restricciones
+    def save(self, *args, **kwargs):
+            self.full_clean()  # Ejecuta validación antes de guardar
+            super().save(*args, **kwargs)
 
 class MiniPC(EquipoInformatico):
     marca = models.CharField(max_length=100, default='', verbose_name='Marca')
@@ -131,7 +161,7 @@ class Azotea(ActivoBase):
     def get_absolute_url(self):
         return reverse('detalle_azotea', kwargs={'pk': self.pk})
 
-class Monitor(ActivoBase):
+class Monitor(EquipoInformatico):
     marca = models.CharField(max_length=100, default='', verbose_name='Marca')
     ubicacion = models.CharField(max_length=100, default='Seleccione', verbose_name='Ubicación') # Eliminado choices=opciones_ubicacion_monitor
     asignado_a = models.CharField(max_length=150, verbose_name='Asignado a', blank=True, null=True) # Nuevo campo
@@ -144,7 +174,7 @@ class Monitor(ActivoBase):
     def get_absolute_url(self):
         return reverse('detalle_monitor', kwargs={'pk': self.pk}) # TODO: Crear URL 'detalle_monitor'
  
-class Audio(ActivoBase):
+class Audio(EquipoInformatico):
     marca = models.CharField(max_length=100, default='', verbose_name='Marca')
     modelo = models.CharField(max_length=100, verbose_name='Modelo', null=True, blank=True) # Hacer el campo modelo opcional
     ubicacion = models.CharField(max_length=100, default='Seleccione', verbose_name='Ubicación')
@@ -172,16 +202,22 @@ class Tablet(EquipoInformatico):
 
 class Eliminados(models.Model):
     """Modelo para guardar registros que han sido eliminados de las tablas originales."""
-    activo = models.CharField(max_length=150, verbose_name='Activo')
-    modelo = models.CharField(max_length=100, verbose_name='Modelo')
-    n_serie = models.CharField(max_length=100, verbose_name='Número Serie')
-    unive = models.CharField(max_length=100, verbose_name='UNIVE')
+    activo = models.CharField(max_length=150, verbose_name='Activo', null=True, blank=True)
+    modelo = models.CharField(max_length=100, verbose_name='Modelo', null=True, blank=True)
+    n_serie = models.CharField(max_length=100, verbose_name='Número Serie', null=True, blank=True)
+    unive = models.CharField(max_length=100, verbose_name='UNIVE', null=True, blank=True)
     bdo = models.DecimalField(max_digits=30, decimal_places=0, verbose_name='BDO', null=True, blank=True)
-    estado = models.CharField(max_length=100, verbose_name='Estado')
-    marca = models.CharField(max_length=100, verbose_name='Marca')
+    estado = models.CharField(max_length=100, verbose_name='Estado', null=True, blank=True)
+    marca = models.CharField(max_length=100, verbose_name='Marca', null=True, blank=True)
     netbios = models.CharField(max_length=100, verbose_name='NetBios', default='', blank=True, null=True)
-    ubicacion = models.CharField(max_length=150, verbose_name='Ubicación', blank=True)
-    eliminado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Eliminado por')
+    ubicacion = models.CharField(max_length=150, verbose_name='Ubicación', null=True, blank=True)
+    eliminado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Eliminado por'
+    )
     fecha_eliminacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Eliminación')
 
     class Meta:

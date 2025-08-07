@@ -12,21 +12,39 @@
             <h1>PLATAFORMA DE INVENTARIO ADR.</h1>
         </div>
 
-        <!-- NUEVO: Contenedor del buscador -->
-        <div class="buscadorContainer" style="margin: 20px auto; width: fit-content text-align: center; border-radius: 10px; overflow: hidden; background: #f5f5f5;">
+        <!-- Contenedor del buscador corregido -->
+        <div class="buscadorContainer"
+             style="margin: 20px auto;
+                    width: fit-content;
+                    text-align: center;
+                    border-radius: 10px;
+                    overflow: hidden;
+                    background: #f5f5f5;">
             <form onsubmit="submitSearch(event)" style="display: inline-flex; gap: 10px;">
-                <input type="text" id="search" placeholder="Escanea o escribe código/nombre" style="padding: 10px; width: 300px;">
-                <button type="submit" style="padding: 10px 20px; border-radius: 10px; border: none; background-color: #858181; color: #fff;">Buscar</button>
+                <input
+                    type="text"
+                    id="search"
+                    placeholder="Escanea o escribe código/nombre"
+                    style="padding: 10px; width: 300px;"
+                >
+                <button
+                    type="submit"
+                    style="padding: 10px 20px;
+                           border-radius: 10px;
+                           border: none;
+                           background-color: #858181;
+                           color: #fff;"
+                >
+                    Buscar
+                </button>
             </form>
         </div>
 
         <div class="homeCard">
-            
             <a href="{% url 'notebooks' %}" class="card">
                 <img class="cardImage" src="{% static 'imagenes/notebook.png' %}" alt="notebook">
                 <h2 class="cardTitle">Notebooks</h2>
             </a>
-            
             <a href="{% url 'mini_pc' %}" class="card">
                 <img class="cardImage" src="{% static 'imagenes/mini_pc.png' %}" alt="mini_pc">
                 <h2 class="cardTitle">Mini PC</h2>
@@ -61,7 +79,9 @@
             </a>
         </div>
     </div>
-</div> 
-<script src="{% static 'js/search.js' %}"></script> 
+</div>
+
+<script src="{% static 'js/search.js' %}"></script>
 
 {% endblock %}
+

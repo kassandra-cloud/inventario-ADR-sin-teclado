@@ -18,8 +18,9 @@
                </div>
                
                <!-- Contenedor del formulario con gradiente de fondo -->
-               <div class="w-full max-w-lg p-8 md:p-10 bg-gradient-to-r from-red-900 to-red-700 rounded-lg shadow-lg">
-                   <h2 class="text-white text-2xl font-sans mb-6">Subir Archivo Excel para All In One Administrativo</h2>
+                <div class="w-full max-w-lg p-8 md:p-10 bg-gradient-to-r from-white to-gray-300 rounded-lg shadow-xlmx-auto    <!-- opcional: centra el contenedor -->mt-32      <!-- opcional: si quieres ese margen superior -->">
+                
+                   <h2 class="text-black text-2xl font-sans mb-6">Subir Archivo Excel para All In One Administrativo</h2>
 
                    <!-- Contenedor de mensajes de error -->
                    {% if form.errors %}
@@ -39,23 +40,24 @@
                    <form method="post" enctype="multipart/form-data" action="{% url 'upload_excel_allinoneadm' %}">
                        {% csrf_token %}
                        <div class="mb-4">
-                        <label for="excel_file" class="block font-semibold text-md text-white">Seleccionar archivo Excel:</label>
+                        <label for="excel_file" class="block font-semibold text-md text-black">Seleccionar archivo Excel:</label>
                         <input type="file" id="excel_file" name="excel_file" accept=".xlsx, .xls" required 
                                class="w-full bg-gray-200 rounded-md py-2 px-3 mt-2 text-gray-900 shadow-sm">
                     </div>
 
                     <!-- Botones de acción -->
                     <div class="flex justify-between mt-6 w-full">
-                        <!-- Botón Subir Archivo -->
-                        <button type="submit" 
-                                class="bg-blue-700 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition duration-200 w-40">
-                            Subir Archivo
-                        </button>
-                        <!-- Botón Regresar -->
+                                                <!-- Botón Regresar -->
                         <a href="{% url 'all_in_one_adm' %}" 
-                        class="bg-gray-400 hover:bg-gray-300 text-white font-medium py-2 px-4 rounded transition duration-200 w-40 text-center">
+                        class="bg-red-900 hover:bg-red-500 text-white font-medium py-1 px-3 rounded-lg transition duration-200 w-24 text-sm text-center">
                             Regresar
                         </a>
+                        <!-- Botón Subir Archivo -->
+                        <button type="submit" 
+                                class="bg-red-900 hover:bg-red-500 text-white font-medium py-1 px-3 rounded-lg transition duration-200 w-24 text-sm text-center">
+                            Subir Archivo
+                        </button>
+
                     </div>
                    </form>
                </div>

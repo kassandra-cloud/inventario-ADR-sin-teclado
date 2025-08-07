@@ -44,7 +44,7 @@ urlpatterns = [
     # Páginas Principales
     path('', IndexView.as_view(), name="index"),
     path('home/', login_required(HomeView.as_view()), name="home"),
-path('all_in_one_selection/', login_required(views.AllInOneSelectionView.as_view()), name='all_in_one_selection'),
+    path('all_in_one_selection/', login_required(views.AllInOneSelectionView.as_view()), name='all_in_one_selection'),
     path('buscar-global/', views.buscar_global, name='buscar_global'),      #  RUTA PARA BÚSQUEDA GLOBAL
     path('error/', ErrorView.as_view(), name="error"),
     

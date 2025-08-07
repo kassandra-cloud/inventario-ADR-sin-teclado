@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'crispy_tailwind',
     'adr',
     'accounts.apps.AccountsConfig',
+
 ]
 
 
@@ -111,7 +112,7 @@ DATABASES = {
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
-        'HOST':config('DB_HOST'),
+        'HOST': config('DB_HOST'),  # Usando config() para leer la variable
         'PORT':config('DB_PORT',cast=int)
 
     }
@@ -196,12 +197,13 @@ LOGGING = {
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST =config('EMAIL_HOST'),
-EMAIL_PORT = config('EMAIL_PORT',cast=int),
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST =config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT',cast=int)
 EMAIL_USE_TLS = False  # No habilitar TLS, ya que usamos SSL
 EMAIL_USE_SSL = True  # Habilitar SSL
-EMAIL_HOST_USER = config('EMAIL_HOST_USER'),
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD'),
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # Remitente predeterminado (cuenta de Gmail)
 
 
@@ -213,6 +215,11 @@ EMAIL_RECIPIENTS = [
     # 'afernandezz@inacap.cl', 'algonzalezv@inacap.cl',
     # 'enavarrom@inacap.cl', 'farnaldi@inacap.cl',
     # 'jhonorato@inacap.cl', 'mvergarao@inacap.cl',
-    # 'pcasanga@inacap.cl',
+    #'pcasanga@inacap.cl',#'farnaldi@inacap.cl'
+    #'kramosv@inacap.cl','kassramosveg@gmail.com', 
 ]
+
+
+# (opcional) carpeta donde guardar temporales de backup
+BACKUP_DIR = config('BACKUP_DIR', default=os.path.join(BASE_DIR, 'backups'))
 

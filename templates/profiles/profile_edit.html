@@ -22,8 +22,8 @@
             </div>
             
             <!-- Contenedor del formulario con gradiente de fondo -->
-            <div class="flex-1 p-4 md:p-8 bg-gradient-to-r from-red-900 to-red-700 rounded-lg shadow-lg relative mt-32">
-                <h2 class="text-white text-2xl font-sans mb-4">Editar Usuario</h2>
+           <div class="flex-1 p-6 md:p-8 bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-xl relative mt-32">
+                <h2 class="text-black text-2xl font-sans mb-4">Editar Usuario</h2>
 
                     <!-- Botón Eliminar en la esquina superior derecha -->
                 <div class="absolute top-4 right-4">
@@ -32,7 +32,7 @@
                         <button type="submit" 
                                 class="bg-red-900 hover:bg-red-800 text-white font-medium py-2 px-4 rounded transition duration-200 w-32"
                                 onclick="return confirm('¿Está seguro que desea eliminar este usuario?');">
-                            Eliminar
+                            <i class="fas fa-trash"></i>
                         </button>
                     </form>
                 </div>
@@ -43,14 +43,14 @@
                     <!-- Primera fila: Username y Foto -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="username" class="block text-white text-sm font-sans italic mb-1">Username</label>
+                            <label for="username" class="block text-black text-sm font-sans italic mb-1">Username</label>
                             <input type="text" name="username" id="username" 
                                 value="{{ user_profile.username }}"
                                 readonly
                                 class="w-full rounded-md border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed">
                         </div>
                         <div>
-                            <label for="image" class="block text-white text-sm font-sans italic mb-1">Foto de Perfil</label>
+                            <label for="image" class="block text-black text-sm font-sans italic mb-1">Foto de Perfil</label>
                             <input type="file" name="image" id="image" 
                                 class="w-full rounded-md border-gray-300 shadow-sm">
                         </div>
@@ -59,14 +59,14 @@
                     <!-- Segunda fila: Nombre y Apellidos -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="first_name" class="block text-white text-sm font-sans italic mb-1">Nombre</label>
+                            <label for="first_name" class="block text-black text-sm font-sans italic mb-1">Nombre</label>
                             <input type="text" name="first_name" id="first_name" 
                                 value="{{ user_profile.first_name }}"
                                 class="w-full rounded-md shadow-sm border-gray-300"
                                 placeholder="Nombre">
                         </div>
                         <div>
-                            <label for="last_name" class="block text-white text-sm font-sans italic mb-1">Apellidos</label>
+                            <label for="last_name" class="block text-black text-sm font-sans italic mb-1">Apellidos</label>
                             <input type="text" name="last_name" id="last_name" 
                                 value="{{ user_profile.last_name }}"
                                 class="w-full rounded-md shadow-sm border-gray-300"
@@ -77,14 +77,14 @@
                     <!-- Tercera fila: Email y Cargo -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="email" class="block text-white text-sm font-sans italic mb-1">Correo</label>
+                            <label for="email" class="block text-black text-sm font-sans italic mb-1">Correo</label>
                             <input type="email" name="email" id="email" 
                                 value="{{ user_profile.email }}"
                                 class="w-full rounded-md shadow-sm border-gray-300"
                                 placeholder="Ejemplo: correo@ejemplo.com">
                         </div>
                         <div>
-                            <label for="group" class="block text-white text-sm font-sans italic mb-1">Cargo</label>
+                            <label for="group" class="block text-black text-sm font-sans italic mb-1">Cargo</label>
                             <select name="group" id="group" 
                                     class="w-full rounded-md shadow-sm border-gray-300">
                                 <option disabled>Seleccione el Cargo</option>
@@ -100,14 +100,14 @@
                     <!-- Cuarta fila: Nueva Contraseña y Confirmación -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="new_password1" class="block text-white text-sm font-sans italic mb-1">Nueva Contraseña</label>
+                            <label for="new_password1" class="block text-black text-sm font-sans italic mb-1">Nueva Contraseña</label>
                             <input type="password" name="new_password1" id="new_password1" 
                                 class="w-full rounded-md shadow-sm border-gray-300"
                                 placeholder="Nueva Contraseña">
                             <span id="password1-error" class="text-yellow-300 text-xs mt-1 hidden">La contraseña debe tener al menos 8 caracteres</span>
                         </div>
                         <div>
-                            <label for="new_password2" class="block text-white text-sm font-sans italic mb-1">Confirmar Nueva Contraseña</label>
+                            <label for="new_password2" class="block text-black text-sm font-sans italic mb-1">Confirmar Nueva Contraseña</label>
                             <input type="password" name="new_password2" id="new_password2" 
                                 class="w-full rounded-md shadow-sm border-gray-300"
                                 placeholder="Confirmar Nueva Contraseña">
@@ -118,12 +118,12 @@
                     <!-- Botones de acción -->
                     <div class="flex justify-between mt-6 w-full">
                         <a href="{% url 'profile_list' %}" 
-                           class="bg-gray-400 hover:bg-gray-300 text-white font-medium py-2 px-4 rounded transition duration-200 w-32 text-center">
-                            Regresar
+                          class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
+                                <i class="fas fa-arrow-left"></i>
                         </a>
                         <button type="submit" 
-                                class="bg-red-700 hover:bg-red-600 text-white font-medium py-2 px-4 rounded transition duration-200 w-32">
-                            Guardar
+                                   class="bg-red-900 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-32">
+                               Guardar
                         </button>
                         
                     </div>

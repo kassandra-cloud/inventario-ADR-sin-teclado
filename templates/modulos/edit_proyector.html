@@ -22,8 +22,8 @@
                 </div>
                 
                 <!-- Contenedor del formulario con gradiente de fondo -->
-                <div class="flex-1 p-4 md:p-8 bg-gradient-to-r from-red-900 to-red-700 rounded-lg shadow-lg relative mt-32">
-                    <h2 class="text-white text-2xl font-sans mb-4">Modificar Registro Proyector</h2>
+               <div class="flex-1 p-6 md:p-8 bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-xl relative mt-32">
+                    <h2 class="text-black text-2xl font-sans mb-4">Modificar Registro Proyector</h2>
 
                     <!-- Botón Eliminar en la esquina superior derecha -->
                     <div class="absolute top-4 right-4">
@@ -32,7 +32,7 @@
                             <button type="submit" 
                                     class="bg-red-900 hover:bg-red-800 text-white font-medium py-2 px-4 rounded transition duration-200 w-32"
                                     onclick="return confirm('¿Está seguro que desea eliminar este registro?');">
-                                Eliminar
+                               <i class="fas fa-trash"></i>
                             </button>
                         </form>
                     </div>
@@ -45,7 +45,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <!-- Campo Activo (solo lectura) -->
                             <div>
-                                <label for="activo" class="block text-white text-sm font-sans italic mb-1">Activo</label>
+                                <label for="activo" class="block text-black text-sm font-sans italic mb-1">Activo</label>
                                 <input type="text" name="activo" id="activo" 
                                     value="Proyector"
                                     readonly
@@ -60,7 +60,7 @@
 
                             <!-- Campo Estado -->
                             <div>
-                                <label for="estado" class="block text-white text-sm font-sans italic mb-1">Estado</label>
+                                <label for="estado" class="block text-black text-sm font-sans italic mb-1">Estado</label>
                                 <input type="text" name="estado" id="estado"
                                     value="{{ form.estado.value|default:'' }}"
                                     class="w-full rounded-md shadow-sm {% if form.estado.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}"
@@ -77,7 +77,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <!-- Campo Marca con Datalist -->
                             <div>
-                                <label for="id_marca" class="block text-white text-sm font-sans italic mb-1">Marca</label>
+                                <label for="id_marca" class="block text-black text-sm font-sans italic mb-1">Marca</label>
                                 {{ form.marca }} {# Esto renderizará el input type="text" con list="marcas_list_proyector" #}
                                 <datalist id="marcas_list_proyector">
                                     {% for value, label in opciones_marca_proyector %} {# Usar la variable del contexto #}
@@ -95,7 +95,7 @@
 
                             <!-- Campo Modelo -->
                             <div>
-                                <label for="modelo" class="block text-white text-sm font-sans italic mb-1">Modelo</label>
+                                <label for="modelo" class="block text-black text-sm font-sans italic mb-1">Modelo</label>
                                 <input type="text" name="modelo" id="modelo" 
                                     value="{{ form.modelo.value|default:'' }}"
                                     class="w-full rounded-md shadow-sm {% if form.modelo.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}"
@@ -110,7 +110,7 @@
 
                         <!-- Tercera fila: Número de Serie -->
                         <div class="mb-4">
-                            <label for="n_serie" class="block text-white text-sm font-sans italic mb-1">Número de Serie</label>
+                            <label for="n_serie" class="block text-black text-sm font-sans italic mb-1">Número de Serie</label>
                             <input type="text" name="n_serie" id="n_serie" 
                                 value="{{ form.n_serie.value|default:'' }}"
                                 class="w-full rounded-md shadow-sm {% if form.n_serie.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}"
@@ -124,7 +124,7 @@
 
                         <!-- Cuarta fila: Edificio -->
                         <div class="mb-4">
-                            <label for="ubicacion" class="block text-white text-sm font-sans italic mb-1">Edificio</label>
+                            <label for="ubicacion" class="block text-black text-sm font-sans italic mb-1">Edificio</label>
                             <input type="text" name="ubicacion" id="ubicacion"
                                    value="{{ form.ubicacion.value|default:'' }}"
                                    class="w-full rounded-md shadow-sm {% if form.ubicacion.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}"
@@ -138,10 +138,10 @@
 
                         <!-- Botones de acción -->
                         <div class="flex justify-between mt-6 w-full">
-                             <a href="{% url 'proyectores' %}" class="bg-gray-400 hover:bg-gray-300 text-white font-medium py-2 px-4 rounded transition duration-200 w-32 text-center">
-                                Regresar
+                             <a href="{% url 'proyectores' %}" class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
+                                 <i class="fas fa-arrow-left"></i>
                             </a>
-                            <button type="submit" class="bg-red-700 hover:bg-red-600 text-white font-medium py-2 px-4 rounded transition duration-200 w-32">
+                            <button type="submit" class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
                                 Guardar
                             </button>
                            

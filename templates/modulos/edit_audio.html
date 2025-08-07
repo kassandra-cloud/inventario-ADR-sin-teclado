@@ -3,49 +3,88 @@
 
 {% block title %}Editar Equipo de Eventos{% endblock %}
 
+{% block sidebar %}
+    {% include 'componentes/sidebar.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="relative min-h-screen">
-    <div class="ml-64 mx-auto"> <!-- Asumiendo que tienes una sidebar de 64 unidades de ancho -->
-        <div class="flex flex-col md:flex-row">
-            <div class="flex-shrink-0 w-1/3 md:w-1/4 flex items-center justify-center p-4 mt-32">
-                <img src="{% static 'imagenes/Speaker-sound-music-audio-equipment-loudspeaker-box-home-theater-system_335016_wh1200.png' %}" alt="Imagen del Equipo de Eventos" class="w-full h-auto rounded-lg shadow-lg">
-            </div>
-            <div class="flex-1 p-4 md:p-8 bg-white shadow-md rounded-lg mt-32">
-                <h1 class="text-2xl font-bold text-gray-800 mb-6">Editar Equipo de Eventos: {{ audio.n_serie }}</h1>
-                
-                <form method="post" class="space-y-6">
-                    {% csrf_token %}
+    <div class="flex flex-col md:flex-row flex-wrap justify-center items-center mx-auto">
 
-                    {% for field in form %}
-                    <div>
-                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
-                            {{ field }}
-                        {% if field.help_text %}
-                        <p class="mt-2 text-sm text-gray-500">{{ field.help_text }}</p>
-                        {% endif %}
-                        {% for error in field.errors %}
-                        <p class="mt-2 text-sm text-red-600">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                    {% endfor %}
+        <!-- Imagen del equipo -->
+        <div class="flex-shrink-0 w-1/3 md:w-1/4 flex items-center justify-center p-4 mt-32">
+            <img src="{% static 'imagenes/Speaker-sound-music-audio-equipment-loudspeaker-box-home-theater-system_335016_wh1200.png' %}" 
+                 alt="Imagen del Equipo de Eventos" 
+                 class="w-full h-auto rounded-lg shadow-lg">
+        </div>
 
-                    <div class="flex justify-end space-x-4">
-                        <a href="{% url 'audio_list' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                            Cancelar
-                        </a>
-                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                            Actualizar Equipo de Eventos
-                        </button>
-                    </div>
-                </form>
-                <!-- Formulario de Eliminación -->
-                <form method="post" action="{% url 'delete_audio' model_name='audio' pk=audio.id %}" class="inline-block ml-4"> {# Added ml-4 for spacing #}
+        <!-- Formulario -->
+        <div class="flex-1 p-8 bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-xl relative mt-32 w-full md:w-3/4">
+            <h2 class="text-black text-2xl font-sans mb-6">Editar Equipo de Eventos: {{ audio.n_serie|default:"(sin serie)" }}</h2>
+
+            <!-- Botón eliminar arriba a la derecha -->
+            <div class="absolute top-4 right-4">
+                <form method="post" action="{% url 'delete_audio' model_name='audio' pk=audio.id %}">
                     {% csrf_token %}
-                    <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="return confirm('¿Estás seguro de que quieres eliminar este equipo de eventos?');">
-                        Eliminar Equipo de Eventos
+                    <button type="submit"
+                            class="bg-red-900 hover:bg-red-700 text-white font-medium py-2 px-4 rounded transition duration-200"
+                            onclick="return confirm('¿Estás seguro de que quieres eliminar este equipo de eventos?');">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </form>
             </div>
+
+            <!-- Formulario principal -->
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for field in form.visible_fields %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="block text-black text-sm font-sans italic mb-1">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        <style>
+                            input, select, textarea {
+                                background-color: white !important;
+                                border: 1px solid #cbd5e0 !important; /* gray-400 */
+                                color: black !important;
+                                padding: 0.5rem 0.75rem;
+                                border-radius: 0.375rem;
+                                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                                font-size: 0.875rem;
+                                width: 100%;
+                            }
+                        </style>
+                        {% if field.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex justify-between mt-8">
+                    <a href="{% url 'audio_list' %}"
+                       class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <button type="submit"
+                            class="bg-red-900 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-32">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+
+            {% if form.errors %}
+                <div class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                    {{ form.errors }}
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
