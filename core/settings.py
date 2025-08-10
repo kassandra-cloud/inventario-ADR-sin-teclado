@@ -216,7 +216,7 @@ EMAIL_RECIPIENTS = [
     # 'enavarrom@inacap.cl', 'farnaldi@inacap.cl',
     # 'jhonorato@inacap.cl', 'mvergarao@inacap.cl',
     #'pcasanga@inacap.cl',#'farnaldi@inacap.cl'
-    #'kramosv@inacap.cl','kassramosveg@gmail.com', 
+    'kramosv@inacap.cl','kassramosveg@gmail.com', 
 ]
 
 

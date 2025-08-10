@@ -1,52 +1,82 @@
 import os
+import gzip
+import shutil
 import subprocess
-from django.core.management.base import BaseCommand
-from django.conf import settings
 from datetime import datetime
+
+from django.conf import settings
 from django.core.mail import EmailMessage
+from django.core.management.base import BaseCommand
+
 
 class Command(BaseCommand):
-    help = 'Realiza un backup de la base de datos MySQL usando mysqldump y lo envía por correo.'
+    help = 'Realiza un backup de MySQL con mysqldump, comprime y envía por correo.'
 
     def handle(self, *args, **kwargs):
-        # Asegurarse de que la carpeta de backups exista
+        # Carpeta de backups
         os.makedirs(settings.BACKUP_DIR, exist_ok=True)
 
-        # Construir el nombre del archivo de backup con la fecha
-        backup_filename = f"backup_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.sql"
-        backup_filepath = os.path.join(settings.BACKUP_DIR, backup_filename)
+        # Credenciales desde ENV; fallback a settings.DATABASES["default"]
+        db = settings.DATABASES.get("default", {})
+        mysql_host = os.getenv("MYSQL_HOST", db.get("HOST", "localhost"))
+        mysql_user = os.getenv("MYSQL_USER", db.get("USER", "root"))
+        mysql_pass = os.getenv("MYSQL_PASSWORD", db.get("PASSWORD", ""))
+        mysql_db   = os.getenv("MYSQL_DATABASE", db.get("NAME", ""))
 
-        # Comando mysqldump para generar el backup
-        mysqldump_command = [
+        # Nombres de archivo
+        ts = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        sql_path = os.path.join(settings.BACKUP_DIR, f"backup_{mysql_db}_{ts}.sql")
+        gz_path  = f"{sql_path}.gz"
+
+        # Comando mysqldump
+        cmd = [
             "mysqldump",
-            "-h", "bqgae94o8ggp92gzivzz-mysql.services.clever-cloud.com",  # Servidor
-            "-u", "ufakmr6kpb5hin6z",  # Usuario
-            "-p" + "DOJF2hPPvB02K39GiNe6",  # Contraseña (sin espacio entre -p y la contraseña)
-            "--no-tablespaces",  # Evitar la exportación de tablas de espacios
-            "bqgae94o8ggp92gzivzz"  # Nombre de la base de datos
+            "-h", mysql_host,
+            "-u", mysql_user,
+            f"-p{mysql_pass}",
+            "--no-tablespaces",
+            mysql_db,
         ]
-        # Ejecutar el comando mysqldump y guardar el backup en el archivo
+
+        # Ejecutar dump
         try:
-            with open(backup_filepath, 'wb') as f:
-                subprocess.run(mysqldump_command, stdout=f, stderr=subprocess.PIPE, check=True)
-            self.stdout.write(self.style.SUCCESS(f'Backup realizado exitosamente: {backup_filepath}'))
+            with open(sql_path, "wb") as out:
+                subprocess.run(cmd, stdout=out, stderr=subprocess.PIPE, check=True)
         except subprocess.CalledProcessError as e:
-            self.stderr.write(f"Error al ejecutar mysqldump: {e}")
+            self.stderr.write(f"Error en mysqldump: {e.stderr.decode(errors='ignore') if e.stderr else e}")
             return
 
-        # Enviar el archivo de backup por correo
-        self.send_backup_email(backup_filepath)
-
-    def send_backup_email(self, backup_filepath):
-        # Crear el correo con el archivo adjunto
-        subject = f"Backup MySQL {datetime.now().strftime('%Y-%m-%d')}"
-        body = "Adjunto tienes el backup de la base de datos."
-        email = EmailMessage(subject, body, settings.EMAIL_HOST_USER, settings.EMAIL_RECIPIENTS)
-        email.attach_file(backup_filepath)  # Adjuntar el archivo de backup
-
+        # Comprimir y limpiar .sql
         try:
-            # Enviar el correo
-            email.send(fail_silently=False)
-            self.stdout.write(self.style.SUCCESS("Correo enviado exitosamente a múltiples destinatarios."))
+            with open(sql_path, "rb") as fin, gzip.open(gz_path, "wb") as fout:
+                shutil.copyfileobj(fin, fout)
+        finally:
+            if os.path.exists(sql_path):
+                os.remove(sql_path)
+
+        # Enviar por correo
+        try:
+            self._send_backup_email(gz_path, mysql_db, ts)
         except Exception as e:
-            self.stderr.write(f"Error al enviar el correo: {e}")
+            self.stderr.write(f"Error al enviar correo: {e}")
+            return
+
+        self.stdout.write(self.style.SUCCESS(f"Backup generado y enviado: {gz_path}"))
+
+    def _send_backup_email(self, file_path: str, dbname: str, ts: str) -> None:
+        subject = f"Backup {dbname} - {ts}"
+        body = f"Adjunto backup de {dbname} generado el {ts}."
+
+        # EMAIL_RECIPIENTS puede ser lista o string con comas (vía entorno/settings)
+        recipients = settings.EMAIL_RECIPIENTS
+        if isinstance(recipients, str):
+            recipients = [x.strip() for x in recipients.split(",") if x.strip()]
+
+        email = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=recipients,
+        )
+        email.attach_file(file_path)
+        email.send(fail_silently=False)
