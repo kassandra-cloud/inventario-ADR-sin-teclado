@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro Nuevo Usuario{% endblock %}
+
+{% block navbar %}
+    {% include 'componentes/navbar.html' %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'componentes/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="pt-16 pb-4 px-2">
+  <div class="w-full max-w-3xl bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-xl p-6 mx-auto">
+
+    {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-2">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form action="{% url 'add_user' %}" method="post" onsubmit="return validateForm()">
+      {% csrf_token %}
+      <h2 class="text-gray-800 text-2xl font-semibold mb-4 text-center">Registro Nuevo Usuario</h2>
+
+      <!-- Username + Imagen -->
+      <div class="flex items-center mb-4">
+        <div class="w-1/2 mr-2">
+          <label for="username" class="block text-sm font-semibold text-gray-700 mb-1">
+            Username <span class="text-red-500">*</span>
+          </label>
+          <input type="text" name="username" id="username"
+                 placeholder="Nombre de Usuario" autocomplete="off" required minlength="3"
+                 class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800" />
+          {% if form.username.errors %}
+            <span class="text-red-500 text-xs mt-1">
+              {% for error in form.username.errors %}<p>{{ error }}</p>{% endfor %}
+            </span>
+          {% endif %}
+        </div>
+        <div class="w-1/2 flex justify-center">
+          <img src="/media/default.png" alt="Default Profile" class="w-20 h-20 rounded-full">
+        </div>
+      </div>
+
+      <!-- Nombre y Apellidos -->
+      <div class="flex gap-2 mb-4">
+        <div class="w-1/2">
+          <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-1">
+            Nombre <span class="text-red-500">*</span>
+          </label>
+          <input type="text" name="first_name" id="first_name" placeholder="Nombre" required
+                 pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+"
+                 class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800" />
+          {% if form.first_name.errors %}
+            <span class="text-red-500 text-xs mt-1">
+              {% for error in form.first_name.errors %}<p>{{ error }}</p>{% endfor %}
+            </span>
+          {% endif %}
+        </div>
+        <div class="w-1/2">
+          <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-1">
+            Apellidos <span class="text-red-500">*</span>
+          </label>
+          <input type="text" name="last_name" id="last_name" placeholder="Apellidos" required
+                 pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+"
+                 class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800" />
+          {% if form.last_name.errors %}
+            <span class="text-red-500 text-xs mt-1">
+              {% for error in form.last_name.errors %}<p>{{ error }}</p>{% endfor %}
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Email y Cargo -->
+      <div class="flex gap-2 mb-4">
+        <div class="w-1/2">
+          <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">
+            Correo <span class="text-red-500">*</span>
+          </label>
+          <input type="email" name="email" id="email"
+                 placeholder="usuario@example.com" required
+                 class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800" />
+          {% if form.email.errors %}
+            <span class="text-red-500 text-xs mt-1">
+              {% for error in form.email.errors %}<p>{{ error }}</p>{% endfor %}
+            </span>
+          {% endif %}
+        </div>
+        <div class="w-1/2">
+          <label for="group" class="block text-sm font-semibold text-gray-700 mb-1">
+            Cargo <span class="text-red-500">*</span>
+          </label>
+          <select name="group" id="group" required
+                  class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800">
+            <option value="" disabled selected>Seleccione el Cargo</option>
+            {% for singular_group, group_id in singular_groups %}
+              <option value="{{ group_id }}">{{ singular_group }}</option>
+            {% endfor %}
+          </select>
+          <span id="group-error" class="text-red-500 text-xs mt-1 hidden">Seleccione un cargo</span>
+        </div>
+      </div>
+
+<!-- Contraseña y requisitos -->
+<div class="flex gap-2 mb-4">
+  <div class="w-1/2">
+    <label for="password1" class="block text-sm font-semibold text-gray-700 mb-1">
+      Contraseña <span class="text-red-500">*</span>
+    </label>
+    <input type="password" name="password1" id="password1" required
+           placeholder="Contraseña"
+           class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800" />
+    {% if form.password1.errors %}
+      <span class="text-red-500 text-xs mt-1">
+        {% for error in form.password1.errors %}<p>{{ error }}</p>{% endfor %}
+      </span>
+    {% endif %}
+  </div>
+  <div class="w-1/2">
+    <label for="password2" class="block text-sm font-semibold text-gray-700 mb-1">
+      Confirmar Contraseña <span class="text-red-500">*</span>
+    </label>
+    <input type="password" name="password2" id="password2" required
+           placeholder="Confirmar Contraseña"
+           class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm text-gray-800" />
+    {% if form.password2.errors %}
+      <span class="text-red-500 text-xs mt-1">
+        {% for error in form.password2.errors %}<p>{{ error }}</p>{% endfor %}
+      </span>
+    {% endif %}
+  </div>
+</div>
+
+<ul class="list-disc ml-6 space-y-1 text-gray-500 text-sm mb-6" id="password-requirements">
+  <li id="req-length">Mínimo 8 caracteres</li>
+  <li id="req-uppercase">Una letra mayúscula</li>
+  <li id="req-lowercase">Una letra minúscula</li>
+  <li id="req-number">Al menos un número</li>
+  <li id="req-special">Un carácter especial (@, #, $, %, etc.)</li>
+</ul>
+      <div class="flex gap-4 mt-4">
+        <a href="{% url 'profile_list' %}"
+           class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm py-2 px-3 uppercase rounded flex-1
+                  text-center flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 19l-7-7 7-7" />
+          </svg>
+          Regresar
+        </a>
+        <button type="submit"
+                class="bg-red-900 hover:bg-red-800 text-white text-sm py-2 px-3 uppercase rounded flex-1">
+          Guardar Nuevo Usuario
+        </button>
+      </div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const pwd = document.getElementById('password1');
+  const reqs = {
+    length:    document.getElementById('req-length'),
+    uppercase: document.getElementById('req-uppercase'),
+    lowercase: document.getElementById('req-lowercase'),
+    number:    document.getElementById('req-number'),
+    special:   document.getElementById('req-special'),
+  };
+
+  pwd.addEventListener('input', () => {
+    const v = pwd.value;
+
+    // Longitud
+    if (v.length >= 8) {
+      reqs.length.classList.remove('text-gray-500');
+      reqs.length.classList.add('text-green-500');
+    } else {
+      reqs.length.classList.remove('text-green-500');
+      reqs.length.classList.add('text-gray-500');
+    }
+
+    // Mayúscula
+    if (/[A-Z]/.test(v)) {
+      reqs.uppercase.classList.remove('text-gray-500');
+      reqs.uppercase.classList.add('text-green-500');
+    } else {
+      reqs.uppercase.classList.remove('text-green-500');
+      reqs.uppercase.classList.add('text-gray-500');
+    }
+
+    // Minúscula
+    if (/[a-z]/.test(v)) {
+      reqs.lowercase.classList.remove('text-gray-500');
+      reqs.lowercase.classList.add('text-green-500');
+    } else {
+      reqs.lowercase.classList.remove('text-green-500');
+      reqs.lowercase.classList.add('text-gray-500');
+    }
+
+    // Número
+    if (/\d/.test(v)) {
+      reqs.number.classList.remove('text-gray-500');
+      reqs.number.classList.add('text-green-500');
+    } else {
+      reqs.number.classList.remove('text-green-500');
+      reqs.number.classList.add('text-gray-500');
+    }
+
+    // Especial
+    if (/[@#$%^&*!]/.test(v)) {
+      reqs.special.classList.remove('text-gray-500');
+      reqs.special.classList.add('text-green-500');
+    } else {
+      reqs.special.classList.remove('text-green-500');
+      reqs.special.classList.add('text-gray-500');
+    }
+  });
+});
+</script>
+{% endblock %}

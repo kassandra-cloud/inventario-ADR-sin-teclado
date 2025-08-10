@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %} Mini PC {% endblock %}
+
+{% block sidebar %}
+{% include 'componentes/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="">
+    <div class="container mx-auto px-2 py-2">
+        <div class="flex flex-col md:flex-row">
+            <div class="w-full md:w-5/6 md:ml-auto">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Inventario de Mini PC</h1>
+
+                <div class="flex justify-between items-center mb-4 buscadorContainer">
+                    <!-- Búsqueda -->
+                    <div class="flex items-center space-x-2 buscador">
+                        <label for="search" class="text-md text-gray-800 font-bold">Buscar:</label>
+                        <div class="relative flex space-x-2">
+                            <div class="relative">
+                                <input type="text" id="search" name="search"
+                                    placeholder="Buscar en cualquier campo..."
+                                    class="w-64 rounded-sm border-0 bg-gray-200 py-1.5 pl-3 pr-10 text-black shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2 sm:text-sm sm:leading-6">
+                                <button type="button" onclick="submitLocalSearch(event)" title="Buscar"
+                                    class="absolute inset-y-0 right-0 px-3 flex items-center bg-gradient-to-br from-red-600 to-red-900 text-white rounded-r-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {% if request.GET %}
+                            <button type="button" id="showAllButton" onclick="window.location.href=window.location.pathname"
+                                title="Mostrar todos los registros"
+                                class="px-3 py-1.5 flex items-center space-x-1 bg-gradient-to-br from-gray-600 to-gray-800 text-white rounded-sm hover:from-gray-700 hover:to-gray-900">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                                </svg>
+                                <span>Ver todos</span>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-4 botonesExcel">
+                        {% if minis_pcs %}
+                        <a href="{% url 'descargar_excel' 'minipc' %}"
+                            class="rounded-sm bg-gradient-to-br from-green-600 to-green-900 px-2 py-2 text-white text-sm font-semibold shadow-sm hover:bg-green-400">
+                            Descargar Excel
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'upload_excel_minipc' %}"
+                            class="rounded-sm bg-gradient-to-br from-green-600 to-green-900 px-2 py-2 text-white text-sm font-semibold shadow-sm hover:bg-green-400">
+                            Subir Excel
+                        </a>
+                    </div>
+                </div>
+
+                {% if minis_pcs %}
+                <div class="table-container w-full overflow-x-auto">
+                    <table class="min-w-full text-center font-sans">
+                        <thead class="border-b font-sans font-semibold bg-gradient-to-tr from-red-500 to-red-700">
+                            <tr>
+                                <th class="text-start text-white text-sm font-semibold px-2 py-1">ACTIVO</th>
+                                <th class="text-start text-white text-sm font-semibold px-2 py-1">ESTADO</th>
+                                <th class="text-start text-white text-sm font-semibold px-2 py-1">MARCA</th>
+                                <th class="text-start text-white text-sm font-semibold px-2 py-1">MODELO</th>
+                                <th class="text-start text-white text-sm font-semibold px-2 py-1">N° SERIE</th>
+                                <th class="text-start text-white text-sm font-semibold px-2 py-1">UNIVE</th>
+                                <th class="text-start text-white text-sm font-semibold px-2 py-1">BDO</th>
+                                <th class="text-start text-white text-sm font-semibold px-2 py-1">UBICACIÓN</th>
+                                <th class="text-start text-white text-sm font-semibold px-2 py-1">REGISTRADO POR</th>
+                                <th class="text-start text-white text-sm font-semibold px-2 py-1">FECHA</th>
+                                {% if group_name_singular == 'ADR' or group_name_singular == 'Operador ADR' %}
+                                <th class="text-start text-white text-sm font-semibold px-2 py-1">ACCIONES</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mini_pc in minis_pcs %}
+                            <tr class="border-b bg-white text-gray-700">
+                                <td class="text-start px-2 py-0 text-sm">{{ mini_pc.activo|capfirst }}</td>
+                                <td class="text-start px-2 py-0 text-sm">{{ mini_pc.estado|capfirst }}</td>
+                                <td class="text-start px-2 py-0 text-sm">{{ mini_pc.marca|capfirst }}</td>
+                                <td class="text-start px-2 py-0 text-sm">{{ mini_pc.modelo|capfirst }}</td>
+                                <td class="text-start px-2 py-0 text-sm">{{ mini_pc.n_serie|capfirst }}</td>
+                                <td class="text-start px-2 py-0 text-sm">{{ mini_pc.unive|capfirst }}</td>
+                                <td class="text-start px-2 py-0 text-sm">{{ mini_pc.bdo|capfirst }}</td>
+                                <td class="text-start px-2 py-0 text-sm">{{ mini_pc.ubicacion|capfirst }}</td>
+                                <td class="text-start px-2 py-0 text-sm">
+                                    {% if mini_pc.creado_por %}
+                                        {% if mini_pc.creado_por.first_name or mini_pc.creado_por.last_name %}
+                                            {{ mini_pc.creado_por.first_name }} {{ mini_pc.creado_por.last_name }}
+                                        {% else %}
+                                            {{ mini_pc.creado_por.username }}
+                                        {% endif %}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td class="text-start px-2 py-0 text-sm">{{ mini_pc.fecha_creacion|date:"d/m/Y" }}</td>
+
+                                {% if group_name_singular == 'ADR' or group_name_singular == 'Operador ADR' %}
+                                <td class="flex gap-2 justify-center items-center py-1">
+                                    <a href="{% url 'edit_mini_pc' mini_pc.id %}"
+                                        class="flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white bg-gradient-to-br from-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-800 shadow-md transition-transform transform hover:scale-105 duration-150">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15.232 5.232l3.536 3.536L9 18H5.5V14.5z" />
+                                        </svg>
+                                    </a>
+                                    <form action="{% url 'delete_mini_pc' 'minipc' mini_pc.id %}" method="post"
+                                        onsubmit="return confirm('¿Está seguro que desea eliminar este registro?');">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                            class="flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white bg-gradient-to-br from-rose-600 to-rose-800 hover:from-rose-700 hover:to-rose-900 shadow-md transition-transform transform hover:scale-105 duration-150">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </>
+                {% endif %}
+
+                {% include 'componentes/pagination.html' with add_url='add_mini_pc' nombre_activo='Mini PC' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% load static %}
+<script src="{% static 'js/search.js' %}"></script>
+{% endblock content %}

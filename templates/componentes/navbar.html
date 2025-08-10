@@ -1,0 +1,91 @@
+{# templates/componentes/navbar.html #}
+{% load static %}
+
+{% if user.is_authenticated %}
+<nav class="fixed top-0 left-0 w-full h-12 md:h-14 border-b border-neutral-100
+            bg-gradient-to-r from-red-700 via-red-800 to-red-900
+            flex items-center justify-between z-50 px-2 sm:px-3 md:px-6">
+{% else %}
+<nav class="fixed top-0 left-0 w-full h-12 md:h-14 flex items-center justify-between z-50 px-2 sm:px-3 md:px-6">
+{% endif %}
+
+  <!-- Izquierda: hamburguesa + título -->
+  <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+    <button id="hamburgerButton" class="text-white p-1 sm:p-2 -ml-1 md:ml-0 focus:outline-none">
+      <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+
+    <!-- Texto corto en móvil, largo en desktop -->
+    <h1 class="text-white font-semibold text-xs sm:text-sm md:text-base leading-none truncate">
+      <span class="md:hidden">GESTIÓN ADR</span>
+      <span class="hidden md:inline">GESTIÓN INVENTARIO ADR</span>
+    </h1>
+  </div>
+
+  <!-- Centro: logo + título principal -->
+  <div class="flex-1 flex justify-center items-center pointer-events-none">
+    <div class="flex items-center gap-1 sm:gap-2 max-w-[65vw] truncate pointer-events-auto">
+      <img src="{% static 'imagenes/favicon.ico' %}" alt="Logo" class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 shrink-0">
+      <h1 class="text-white font-bold uppercase tracking-wide
+                 text-xs sm:text-sm md:text-lg truncate">
+        <span class="sm:hidden">PLATAFORMA ADR</span>
+        <span class="hidden sm:inline">PLATAFORMA DE INVENTARIO ADR</span>
+      </h1>
+    </div>
+  </div>
+
+  <!-- Derecha: avatar y botón de salida -->
+  <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+    {% if user.is_authenticated %}
+      <div id="userMenuButton" class="cursor-pointer flex items-center gap-1 sm:gap-2">
+        <!-- En móvil solo avatar -->
+        <img class="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full"
+             src="{{ user.profile.image.url }}" alt="{{ user.username }}">
+        <!-- Texto largo solo en escritorio -->
+        <span class="text-white italic hidden lg:block text-sm">
+          Usuario en línea: {{ user.first_name|capfirst }} {{ user.last_name|capfirst }} | {{ group_name_singular }}
+        </span>
+      </div>
+
+      <form method="POST" action="{% url 'logout' %}" class="inline">
+        {% csrf_token %}
+        <button type="submit"
+                class="text-white text-[11px] sm:text-xs md:text-sm font-semibold px-2 sm:px-3 py-1 rounded
+                       bg-red-800 hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-800/60 transition">
+          <span class="hidden sm:inline">Cerrar Sesión</span>
+          <span class="sm:hidden">Salir</span>
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</nav>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.navbarScriptInitialized) return;
+    window.navbarScriptInitialized = true;
+
+    const isAuth = {{ user.is_authenticated|yesno:"true,false" }};
+    if (!isAuth) return;
+
+    const hamburger = document.getElementById('hamburgerButton');
+    const sidebar   = document.getElementById('sidebar');
+
+    hamburger?.addEventListener('click', function(e) {
+      e.stopPropagation();
+      sidebar.classList.toggle('left-[-300px]');
+      sidebar.classList.toggle('left-0');
+    });
+
+    document.addEventListener('click', function(e) {
+      if (sidebar?.classList.contains('left-0')
+          && !sidebar.contains(e.target)
+          && !hamburger.contains(e.target)) {
+        sidebar.classList.replace('left-0', 'left-[-300px]');
+      }
+    });
+  });
+</script>

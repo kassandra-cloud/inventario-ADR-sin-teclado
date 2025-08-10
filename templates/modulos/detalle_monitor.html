@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle del Monitor: {{ monitor.n_serie }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden">
+        <div class="bg-gray-800 text-white px-6 py-4">
+            <h1 class="text-2xl font-bold">Detalle del Monitor: {{ monitor.activo }} - {{ monitor.n_serie }}</h1>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                    <strong class="text-gray-700">Activo:</strong>
+                    <p class="text-gray-900">{{ monitor.activo }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Marca:</strong>
+                    <p class="text-gray-900">{{ monitor.marca }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Modelo:</strong>
+                    <p class="text-gray-900">{{ monitor.modelo }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Número de Serie:</strong>
+                    <p class="text-gray-900">{{ monitor.n_serie }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">UNIVE:</strong>
+                    <p class="text-gray-900">{{ monitor.unive }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">BDO:</strong>
+                    <p class="text-gray-900">{{ monitor.bdo|default_if_none:"No especificado" }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Pulgadas:</strong>
+                    <p class="text-gray-900">{{ monitor.pulgadas|default_if_none:"No especificado" }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Ubicación:</strong>
+                    <p class="text-gray-900">{{ monitor.ubicacion }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Estado:</strong>
+                    <p class="text-gray-900">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                     {% if monitor.estado == 'Activo' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ monitor.estado }}
+                        </span>
+                    </p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Registrado por:</strong>
+                    <p class="text-gray-900">{{ monitor.creado_por.get_full_name|default_if_none:"Sistema" }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Fecha de Creación:</strong>
+                    <p class="text-gray-900">{{ monitor.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                </div>
+                <div>
+                    <strong class="text-gray-700">Última Modificación:</strong>
+                    <p class="text-gray-900">{{ monitor.fecha_modificacion|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+            <a href="{% url 'monitor_list' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-arrow-left mr-2"></i>Volver al Listado
+            </a>
+            {% if request.user.groups.first.name == 'ADR' or request.user.groups.first.name == 'Operadores ADR' %}
+            <a href="{% url 'edit_monitor' monitor.pk %}" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-edit mr-2"></i>Editar
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

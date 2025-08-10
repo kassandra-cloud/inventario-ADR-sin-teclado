@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar All In One{% endblock %}
+
+{% block sidebar %}
+    {% include 'componentes/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="relative min-h-screen">
+  <div class="flex flex-col md:flex-row flex-wrap justify-center items-center mx-auto">
+    <div class="flex flex-col md:flex-row flex-wrap">
+
+      <!-- Imagen lado izquierdo -->
+      <div class="flex-shrink-0 w-full md:w-1/4 flex items-center justify-center p-4 mt-8">
+        <img class="w-full h-auto rounded-lg shadow-lg"
+             src="/static/imagenes/allinone.png"
+             alt="Imagen All In One">
+      </div>
+
+      <!-- Formulario lado derecho -->
+      <div class="flex-1 p-6 md:p-8 bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-xl relative mt-8">
+        <h2 class="text-gray-800 text-2xl font-sans mb-6 text-center">
+          Registro Nuevo All In One
+        </h2>
+
+        <form method="POST" action="{% url 'add_all_in_one' %}">
+  {% csrf_token %}
+
+  <!-- Primera fila: Activo, Estado, Marca, Modelo, Nº Serie -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+    <!-- Activo -->
+    <div>
+      <label for="activo" class="block text-gray-700 text-sm italic mb-2">Activo</label>
+      <input type="text" id="activo" name="activo" value="All in One" readonly
+             class="w-full rounded-md border-gray-300 bg-gray-100 cursor-not-allowed shadow-sm">
+    </div>
+
+    <!-- Estado (desplegable) -->
+    <div>
+      <label for="estado" class="block text-gray-700 text-sm italic mb-2">Estado</label>
+      <select id="estado" name="estado" required
+              class="w-full rounded-md border-gray-300 shadow-sm">
+        <option value="">Seleccione estado</option>
+        <option value="Operativo">Operativo</option>
+        <option value="Inactivo">Inactivo</option>
+      </select>
+      {% if form.estado.errors %}
+        <div class="text-orange-600 text-sm mt-1">
+          {{ form.estado.errors|join:", " }}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Marca (desplegable) -->
+    <div>
+      <label for="marca" class="block text-gray-700 text-sm italic mb-2">Marca</label>
+      <select id="marca" name="marca" required
+              class="w-full rounded-md border-gray-300 shadow-sm">
+        <option value="">Seleccione marca</option>
+        <option value="Lenovo">Lenovo</option>
+        <option value="HP">HP</option>
+      </select>
+      {% if form.marca.errors %}
+        <div class="text-orange-600 text-sm mt-1">
+          {{ form.marca.errors|join:", " }}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Modelo -->
+    <div>
+      <label for="modelo" class="block text-gray-700 text-sm italic mb-2">Modelo</label>
+      <input type="text" id="modelo" name="modelo" required
+             value="{{ form.modelo.value|default_if_none:'' }}"
+             placeholder="Modelo"
+             class="w-full rounded-md border-gray-300 shadow-sm">
+      {% if form.modelo.errors %}
+        <div class="text-orange-600 text-sm mt-1">
+          {{ form.modelo.errors|join:", " }}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Número de Serie -->
+    <div>
+      <label for="n_serie" class="block text-gray-700 text-sm italic mb-2">Número de Serie</label>
+      <input type="text" id="n_serie" name="n_serie" required
+             value="{{ form.n_serie.value|default_if_none:'' }}"
+             placeholder="Número de Serie"
+             class="w-full rounded-md border-gray-300 shadow-sm">
+      {% if form.n_serie.errors %}
+        <div class="text-orange-600 text-sm mt-1">
+          {{ form.n_serie.errors|join:", " }}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="hidden md:block"></div>
+  </div>
+
+  <!-- Segunda fila: UNIVE, BDO, NetBios -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+    <!-- UNIVE -->
+    <div>
+      <label for="unive" class="block text-gray-700 text-sm italic mb-2">UNIVE</label>
+      <input type="text" id="unive" name="unive" required
+             value="{{ form.unive.value|default_if_none:'' }}"
+             placeholder="UNIVE"
+             class="w-full rounded-md border-gray-300 shadow-sm">
+      {% if form.unive.errors %}
+        <div class="text-orange-600 text-sm mt-1">
+          {{ form.unive.errors|join:", " }}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- BDO -->
+    <div>
+      <label for="bdo" class="block text-gray-700 text-sm italic mb-2">BDO</label>
+      <input type="text" id="bdo" name="bdo" required
+             value="{{ form.bdo.value|default_if_none:'' }}"
+             placeholder="BDO"
+             class="w-full rounded-md border-gray-300 shadow-sm">
+      {% if form.bdo.errors %}
+        <div class="text-orange-600 text-sm mt-1">
+          {{ form.bdo.errors|join:", " }}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- NetBios -->
+    <div>
+      <label for="netbios" class="block text-gray-700 text-sm italic mb-2">NetBios</label>
+      <input type="text" id="netbios" name="netbios" required
+             value="{{ form.netbios.value|default_if_none:'' }}"
+             placeholder="NetBios"
+             class="w-full rounded-md border-gray-300 shadow-sm">
+      {% if form.netbios.errors %}
+        <div class="text-orange-600 text-sm mt-1">
+          {{ form.netbios.errors|join:", " }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Tercera fila: Ubicación (desplegable) -->
+  <div class="mb-6">
+    <label for="ubicacion" class="block text-gray-700 text-sm italic mb-2">Ubicación</label>
+    <select id="ubicacion" name="ubicacion" required
+            class="w-full rounded-md border-gray-300 shadow-sm">
+      <option value="">Seleccione ubicación</option>
+      <option value="Bodega Central">Bodega Central</option>
+      <option value="Laboratorio 1">Laboratorio 1</option>
+    </select>
+    {% if form.ubicacion.errors %}
+      <div class="text-orange-600 text-sm mt-1">
+        {{ form.ubicacion.errors|join:", " }}
+      </div>
+    {% endif %}
+  </div>
+
+          <!-- Botones -->
+          <div class="flex justify-between mt-6 w-full">
+            <a href="{% url 'all_in_one' %}"
+               class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
+              <i class="fas fa-arrow-left"></i>
+            </a>
+            <button type="submit"
+                    class="bg-red-900 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-32">
+              Guardar
+            </button>
+          </div>
+
+          <!-- Errores globales -->
+          {% if form.non_field_errors %}
+            <div class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+        rel="stylesheet" />
+  <link rel="icon" href="{% static 'imagenes/favicon.ico' %}?v={{ timestamp }}"
+        type="image/ico">
+  <title>Login</title>
+</head>
+<body class="bg-gradient-to-br from-red-600 to-blue-600 min-h-screen">
+
+  <div class="flex min-h-full flex-col justify-center px-6 py-10 lg:px-8 mt-20">
+    <div class="sm:mx-auto sm:w-full sm:max-w-sm">
+      <h2 class="mt-5 text-center text-2xl font-semibold leading-5 tracking-tight text-white">
+        GESTIÓN INVENTARIO ADR
+      </h2>
+      <p class="mt-1 text-center text-md font-semibold leading-6 tracking-tight text-white">
+        INACAP IQUIQUE
+      </p>
+    </div>
+
+    <div class="mt-5 sm:mx-auto sm:w-full sm:max-w-sm">
+      <form class="space-y-1" method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
+        {% load crispy_forms_tags %}
+
+        {% if form.non_field_errors %}
+          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Error:</strong>
+            <span class="block sm:inline">
+              {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </span>
+          </div>
+        {% endif %}
+
+        <!-- Usuario -->
+        <div>
+          <label for="username" class="block text-lg leading-1 text-white font-semibold">Usuario</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+              <svg class="h-6 w-6 text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                   fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 4c2.21 0 4 1.79 4 4s-1.79 4-4 4-4-1.79-4-4
+                         1.79-4 4-4zm0 10c4.42 0 8 1.79 8 4v2H4v-2
+                         c0-2.21 3.58-4 8-4z"/>
+              </svg>
+            </span>
+            <input id="username" name="username" type="text" autocomplete="username" required
+                   class="block w-full rounded-sm border-0 bg-white py-1.5 pl-10 pr-3 text-black p-3
+                          shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2
+                          focus:ring-inset focus:ring-red-500 sm:text-xl sm:leading-6">
+          </div>
+        </div>
+
+        <!-- Contraseña con ojo -->
+        <div>
+          <label for="password" class="block text-lg mt-3 leading-1 text-white font-semibold">Contraseña</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+              <svg class="h-6 w-6 text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                   fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 3a4 4 0 1 1 2.83 6.83l-.58.59v1.59h-2v2h-2v2h-2v2H5v-3
+                         l6.41-6.41a4 4 0 0 1 .59-.58A3.98 3.98 0 0 1 12 3z"/>
+              </svg>
+            </span>
+
+            <input id="password" name="password" type="password" autocomplete="current-password" required
+                   class="block w-full rounded-sm border-0 bg-white py-1.5 pl-10 pr-10 text-black p-3
+                          shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2
+                          focus:ring-inset focus:ring-red-500 sm:text-xl sm:leading-6">
+
+            <button type="button" id="togglePassword"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 focus:outline-none">
+              <svg id="iconEye" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor">
+                <!-- ojo cerrado -->
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M13.875 18.825A10.05 10.05 0 0112 19
+                         c-4.478 0-8.268-2.943-9.542-7
+                         a9.985 9.985 0 012.47-4.112m1.55-1.55
+                         A9.956 9.956 0 0112 5c4.478 0
+                         8.268 2.943 9.542 7
+                         a9.986 9.986 0 01-4.132 5.231
+                         M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Botón Iniciar sesión -->
+        <div>
+          <button type="submit"
+                  class="flex w-full justify-center rounded-sm bg-gradient-to-r from-red-800 to-red-600
+                         px-3 py-1.5 text-xl mt-8 font-semibold leading-6 text-white shadow-sm
+                         hover:bg-red-400 focus-visible:outline focus-visible:outline-2
+                         focus-visible:outline-offset-2 focus-visible:outline-red-500">
+            Iniciar sesión
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="{% static 'js/virtual-keyboard.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const pwdInput = document.getElementById('password');
+      const toggle  = document.getElementById('togglePassword');
+      const icon    = document.getElementById('iconEye');
+
+      toggle.addEventListener('click', () => {
+        const isPwd = pwdInput.type === 'password';
+        pwdInput.type = isPwd ? 'text' : 'password';
+
+        // ojo abierto vs cerrado
+        icon.innerHTML = isPwd
+          ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"/>'
+          : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.985 9.985 0 012.47-4.112m1.55-1.55A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.986 9.986 0 01-4.132 5.231M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>';
+      });
+    });
+  </script>
+</body>
+</html>

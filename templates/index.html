@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .bg-custom {
+      background-image: url('/static/Imagenes/Inacap_1.jpeg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    body, body * { /* Aplicar a body y todos sus elementos hijos */
+      user-select: none !important; /* Standard syntax */
+      -webkit-user-select: none !important; /* Safari */
+      -moz-user-select: none !important; /* Firefox */
+      -ms-user-select: none !important; /* Internet Explorer/Edge */
+    }
+  </style>
+</head>
+<body class="bg-custom bg-opacity-50">
+  <div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-sm">
+      <img class="mx-auto h-28 w-auto rounded-full border-4 border-white shadow-xl" src="{% static 'Imagenes/adr_icon.png' %}" alt="Your Company">
+
+      <h2 class="mt-5 text-center text-3xl font-bold leading-9 tracking-tight text-white">ADMINISTRACIÓN INVENTARIO ADR</h2>
+    </div>
+
+    <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+      <form class="space-y-6" method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
+        
+        <div>
+          <label for="username" class="block text-lg italic leading-6 text-white font-bold">Usuario</label>
+          <div class="mt-2">
+            <input id="username" name="username" type="text" autocomplete="username" required class="block w-full rounded-md border-0 bg-white/5 py-1.5 text-cyan-600 shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6">
+          </div>
+        </div>
+    
+        <div>
+          <div class="flex items-center justify-between">
+            <label for="password" class="block text-lg italic leading-6 text-white font-bold">Contraseña</label>
+          </div>
+          <div class="mt-2">
+            <input id="password" name="password" type="password" autocomplete="current-password" required class="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6">
+          </div>
+        </div>
+    
+        <div>
+          <button type="submit" class="flex w-full justify-center rounded-md bg-red-500 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-red-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500">Ingresar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Prevenir selección en el cuerpo
+  if (document.body.style.MozUserSelect !== undefined) { // Específico para Firefox si es necesario
+    document.body.style.MozUserSelect = 'none';
+  }
+  document.body.onselectstart = function() { return false; }; // Para IE y navegadores WebKit
+
+  // Prevenir selección en campos de input
+  var inputs = document.querySelectorAll('input[type="text"], input[type="password"]');
+  inputs.forEach(function(input) {
+    if (input.style.MozUserSelect !== undefined) {
+      input.style.MozUserSelect = 'none';
+    }
+    input.onselectstart = function() { return false; };
+  });
+
+  // Prevenir la acción de copiar (Ctrl+C / Cmd+C)
+  document.body.addEventListener('copy', function(e) {
+    e.preventDefault();
+    return false;
+  });
+
+  // Prevenir menú contextual (clic derecho)
+  document.body.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
+});
+</script>
+</body>
+</html>

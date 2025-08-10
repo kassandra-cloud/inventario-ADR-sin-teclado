@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Agregar Monitor{% endblock %}
+
+{% block sidebar %}
+    {% include 'componentes/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+<!-- Contenedor principal -->
+<div class="relative min-h-screen">
+
+    <!-- Contenedor del formulario con margen para sidebar -->
+    <div class="flex flex-col md:flex-row flex-wrap justify-center items-center mx-auto">
+
+        <!-- Imagen del Monitor -->
+        <div class="flex-shrink-0 w-1/3 md:w-1/4 flex items-center justify-center p-4 mt-32">
+            <img class="w-full h-auto rounded-lg shadow-lg"
+                 src="{% static 'imagenes/png-transparent-computer-monitors-4k-resolution-display-resolution-1080p-monitors-gadget-electronics-computer.png' %}"
+                 alt="Imagen Monitor">
+        </div>
+
+        <!-- Formulario -->
+        <div class="flex-1 p-6 md:p-8 bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-xl relative mt-32">
+            <h2 class="text-black text-2xl font-sans mb-4">Registro Nuevo Monitor</h2>
+
+            <form method="POST" action="{% url 'add_monitor' %}">
+    {% csrf_token %}
+
+    <!-- Primera fila: Activo y Asignado a -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+            <label for="activo" class="block text-black text-sm font-sans italic mb-1">Activo</label>
+            <input type="text" id="activo" name="activo" value="Monitor Avanzado"
+                readonly class="w-full rounded-md border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed">
+        </div>
+
+        <div>
+            <label for="asignado_a" class="block text-black text-sm font-sans italic mb-1">Asignado a</label>
+            <input type="text" id="asignado_a" name="asignado_a" value="{{ form.asignado_a.value|default:'' }}"
+                required class="w-full rounded-md border-gray-300 shadow-sm">
+            {% if form.asignado_a.errors %}
+                <p class="text-orange-600 text-sm mt-1">{{ form.asignado_a.errors.0 }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Segunda fila: Estado y Marca -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+            <label for="estado" class="block text-black text-sm font-sans italic mb-1">Estado</label>
+            <select id="estado" name="estado" required class="w-full rounded-md border-gray-300 shadow-sm">
+                <option value="" disabled selected>Selecciona estado</option>
+                <option value="Operativo">Operativo</option>
+                <option value="Inactivo">Inactivo</option>
+            </select>
+            {% if form.estado.errors %}
+                <p class="text-orange-600 text-sm mt-1">{{ form.estado.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="marca" class="block text-black text-sm font-sans italic mb-1">Marca</label>
+            <select id="marca" name="marca" required class="w-full rounded-md border-gray-300 shadow-sm">
+                <option value="" disabled selected>Selecciona una marca</option>
+                <option value="HP">HP</option>
+                <option value="Lenovo">Lenovo</option>
+            </select>
+            {% if form.marca.errors %}
+                <p class="text-orange-600 text-sm mt-1">{{ form.marca.errors.0 }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tercera fila: Modelo y N° de Serie -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+            <label for="modelo" class="block text-black text-sm font-sans italic mb-1">Modelo</label>
+            <input type="text" id="modelo" name="modelo" value="{{ form.modelo.value|default:'' }}"
+                required class="w-full rounded-md border-gray-300 shadow-sm">
+            {% if form.modelo.errors %}
+                <p class="text-orange-600 text-sm mt-1">{{ form.modelo.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="numero_serie" class="block text-black text-sm font-sans italic mb-1">Número de Serie</label>
+            <input type="text" id="numero_serie" name="n_serie" value="{{ form.n_serie.value|default:'' }}"
+                required class="w-full rounded-md border-gray-300 shadow-sm">
+            {% if form.n_serie.errors %}
+                <p class="text-orange-600 text-sm mt-1">{{ form.n_serie.errors.0 }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Cuarta fila: UNIVE, BDO y NetBios -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div>
+            <label for="unive" class="block text-black text-sm font-sans italic mb-1">UNIVE</label>
+            <input type="text" id="unive" name="unive" value="{{ form.unive.value|default:'' }}"
+                required class="w-full rounded-md border-gray-300 shadow-sm">
+            {% if form.unive.errors %}
+                <p class="text-orange-600 text-sm mt-1">{{ form.unive.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="bdo" class="block text-black text-sm font-sans italic mb-1">BDO</label>
+            <input type="text" id="bdo" name="bdo" value="{{ form.bdo.value|default:'' }}"
+                required class="w-full rounded-md border-gray-300 shadow-sm">
+            {% if form.bdo.errors %}
+                <p class="text-orange-600 text-sm mt-1">{{ form.bdo.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="netbios" class="block text-black text-sm font-sans italic mb-1">NetBios</label>
+            <input type="text" id="netbios" name="netbios" value="{{ form.netbios.value|default:'' }}"
+                required class="w-full rounded-md border-gray-300 shadow-sm">
+            {% if form.netbios.errors %}
+                <p class="text-orange-600 text-sm mt-1">{{ form.netbios.errors.0 }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quinta fila: Ubicación -->
+    <div class="mb-4">
+        <label for="ubicacion" class="block text-black text-sm font-sans italic mb-1">Ubicación</label>
+        <select id="ubicacion" name="ubicacion" required class="w-full rounded-md border-gray-300 shadow-sm">
+            <option value="" disabled selected>Selecciona ubicación</option>
+            <option value="Bodega Central">Bodega Central</option>
+            <option value="Laboratorio">Laboratorio</option>
+        </select>
+        {% if form.ubicacion.errors %}
+            <p class="text-orange-600 text-sm mt-1">{{ form.ubicacion.errors.0 }}</p>
+        {% endif %}
+    </div>
+
+                    <!-- Botones -->
+                    <div class="flex justify-between mt-6 w-full">
+                        <a href="{% url 'monitor_list' %}"
+                            class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                        <button type="submit"
+                            class="bg-red-900 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-32">
+                            Guardar
+                        </button>
+                    </div>
+                </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

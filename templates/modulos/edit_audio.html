@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Equipo de Eventos{% endblock %}
+
+{% block sidebar %}
+    {% include 'componentes/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="relative min-h-screen">
+    <div class="flex flex-col md:flex-row flex-wrap justify-center items-center mx-auto">
+
+        <!-- Imagen del equipo -->
+        <div class="flex-shrink-0 w-1/3 md:w-1/4 flex items-center justify-center p-4 mt-32">
+            <img src="{% static 'imagenes/Speaker-sound-music-audio-equipment-loudspeaker-box-home-theater-system_335016_wh1200.png' %}" 
+                 alt="Imagen del Equipo de Eventos" 
+                 class="w-full h-auto rounded-lg shadow-lg">
+        </div>
+
+        <!-- Formulario -->
+        <div class="flex-1 p-8 bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-xl relative mt-32 w-full md:w-3/4">
+            <h2 class="text-black text-2xl font-sans mb-6">Editar Equipo de Eventos: {{ audio.n_serie|default:"(sin serie)" }}</h2>
+
+            <!-- Botón eliminar arriba a la derecha -->
+            <div class="absolute top-4 right-4">
+                <form method="post" action="{% url 'delete_audio' model_name='audio' pk=audio.id %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="bg-red-900 hover:bg-red-700 text-white font-medium py-2 px-4 rounded transition duration-200"
+                            onclick="return confirm('¿Estás seguro de que quieres eliminar este equipo de eventos?');">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Formulario principal -->
+           <form method="post">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Activo -->
+        <div>
+            <label for="activo" class="block text-black text-sm font-sans italic mb-1">Activo</label>
+            <input type="text" id="activo" name="activo"
+                value="{{ form.activo.value|default:'Audio Avanzado' }}"
+                readonly>
+            {% for error in form.activo.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Estado -->
+        <div>
+            <label for="estado" class="block text-black text-sm font-sans italic mb-1">Estado</label>
+            <select id="estado" name="estado" required>
+                <option value="" disabled selected>Selecciona estado</option>
+                <option value="Operativo" {% if form.estado.value == "Operativo" %}selected{% endif %}>Operativo</option>
+                <option value="Inactivo" {% if form.estado.value == "Inactivo" %}selected{% endif %}>Inactivo</option>
+            </select>
+            {% for error in form.estado.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Marca -->
+        <div>
+            <label for="marca" class="block text-black text-sm font-sans italic mb-1">Marca</label>
+            <select id="marca" name="marca" required>
+                <option value="" disabled selected>Selecciona una marca</option>
+                <option value="HP" {% if form.marca.value == "HP" %}selected{% endif %}>HP</option>
+                <option value="Lenovo" {% if form.marca.value == "Lenovo" %}selected{% endif %}>Lenovo</option>
+            </select>
+            {% for error in form.marca.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Modelo -->
+        <div>
+            <label for="modelo" class="block text-black text-sm font-sans italic mb-1">Modelo</label>
+            <input type="text" id="modelo" name="modelo"
+                value="{{ form.modelo.value|default:'' }}"
+                required>
+            {% for error in form.modelo.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- N° de Serie -->
+        <div>
+            <label for="n_serie" class="block text-black text-sm font-sans italic mb-1">N° de Serie</label>
+            <input type="text" id="n_serie" name="n_serie"
+                value="{{ form.n_serie.value|default:'' }}"
+                required>
+            {% for error in form.n_serie.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- UNIVE -->
+        <div>
+            <label for="unive" class="block text-black text-sm font-sans italic mb-1">UNIVE</label>
+            <input type="text" id="unive" name="unive"
+                value="{{ form.unive.value|default:'' }}"
+                required>
+            {% for error in form.unive.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- BDO -->
+        <div>
+            <label for="bdo" class="block text-black text-sm font-sans italic mb-1">BDO</label>
+            <input type="text" id="bdo" name="bdo"
+                value="{{ form.bdo.value|default:'0' }}"
+                required>
+            {% for error in form.bdo.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Ubicación -->
+        <div>
+            <label for="ubicacion" class="block text-black text-sm font-sans italic mb-1">Ubicación</label>
+            <select id="ubicacion" name="ubicacion" required>
+                <option value="" disabled selected>Selecciona ubicación</option>
+                <option value="Bodega Central" {% if form.ubicacion.value == "Bodega Central" %}selected{% endif %}>Bodega Central</option>
+                <option value="Laboratorio" {% if form.ubicacion.value == "Laboratorio" %}selected{% endif %}>Laboratorio</option>
+            </select>
+            {% for error in form.ubicacion.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- Estilo personalizado -->
+    <style>
+        input, select, textarea {
+            background-color: white !important;
+            border: 1px solid #cbd5e0 !important; /* gray-400 */
+            color: black !important;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            font-size: 0.875rem;
+            width: 100%;
+        }
+    </style>
+
+                <!-- Botones de acción -->
+                <div class="flex justify-between mt-8">
+                    <a href="{% url 'audio_list' %}"
+                       class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <button type="submit"
+                            class="bg-red-900 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-32">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+
+            {% if form.errors %}
+                <div class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                    {{ form.errors }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

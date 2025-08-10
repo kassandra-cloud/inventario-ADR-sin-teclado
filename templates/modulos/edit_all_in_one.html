@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Modificar All In One{% endblock %}  {# Cambiado de "Administrativos" #}
+
+{% block sidebar %}
+   {% include 'componentes/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+   <!-- Contenedor principal con imagen de fondo -->
+   <div class="relative min-h-screen">
+       <!-- Contenedor principal con margen para sidebar -->
+       <div class="ml-64 mx-auto">
+           <div class="flex flex-col md:flex-row">
+               <!-- Contenedor de la imagen del All In One -->
+               <div class="flex-shrink-0 w-1/3 md:w-1/4 flex items-center justify-center p-4 mt-32">
+                   <img class="w-full h-auto rounded-lg shadow-lg" 
+                        src="/static/imagenes/allinone.png"
+                        alt="Imagen All In One">
+               </div>
+               
+               <!-- Contenedor del formulario con gradiente de fondo -->
+                <div class="flex-1 p-6 md:p-8 bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-xl relative mt-32">
+                   <h2 class="text-black text-2xl font-sans mb-4">Modificar Registro All In One</h2>
+
+                   <!-- Botón Eliminar en la esquina superior derecha -->
+                   <div class="absolute top-4 right-4">
+                        <form action="{% url 'delete_all_in_one' model_name='all_in_one' pk=object.pk %}" method="post" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                    class="bg-red-900 hover:bg-red-800 text-white font-medium p-2 rounded transition duration-200 w-10 h-10 flex items-center justify-center"
+                                    onclick="return confirm('¿Está seguro que desea eliminar este registro?');"
+                                    title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    
+                   </div>
+
+                   <!-- Formulario principal de modificación -->
+                   <!-- Formulario principal de modificación -->
+<form action="{% url 'edit_all_in_one' object.pk %}" method="post">
+  {% csrf_token %}
+
+  <!-- Primera fila: Activo y Estado -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div>
+      <label for="activo" class="block text-black text-sm font-sans italic mb-1">Activo</label>
+      <input type="text" name="activo" id="activo" value="All in One" readonly required
+             class="w-full rounded-md border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed"
+             placeholder="Activo">
+    </div>
+
+    <div>
+      <label for="estado" class="block text-black text-sm font-sans italic mb-1">Estado</label>
+      <select name="estado" id="estado" required
+              class="w-full rounded-md shadow-sm {% if form.estado.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}">
+        <option value="">Seleccione estado</option>
+        <option value="Operativo" {% if form.estado.value == "Operativo" %}selected{% endif %}>Operativo</option>
+        <option value="Inactivo" {% if form.estado.value == "Inactivo" %}selected{% endif %}>Inactivo</option>
+      </select>
+      {% if form.estado.errors %}
+        <div class="text-yellow-300 text-sm mt-1">{{ form.estado.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Segunda fila: Marca y Modelo -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div>
+      <label for="marca" class="block text-black text-sm font-sans italic mb-1">Marca</label>
+      <select name="marca" id="marca" required
+              class="w-full rounded-md shadow-sm {% if form.marca.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}">
+        <option value="">Seleccione marca</option>
+        <option value="Lenovo" {% if form.marca.value == "Lenovo" %}selected{% endif %}>Lenovo</option>
+        <option value="HP" {% if form.marca.value == "HP" %}selected{% endif %}>HP</option>
+      </select>
+      {% if form.marca.errors %}
+        <div class="text-yellow-300 text-sm mt-1">{{ form.marca.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="modelo" class="block text-black text-sm font-sans italic mb-1">Modelo</label>
+      <input type="text" name="modelo" id="modelo" required
+             value="{{ form.modelo.value|default:'' }}"
+             class="w-full rounded-md shadow-sm {% if form.modelo.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}"
+             placeholder="Modelo">
+      {% if form.modelo.errors %}
+        <div class="text-yellow-300 text-sm mt-1">{{ form.modelo.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Tercera fila: Número de Serie -->
+  <div class="mb-4">
+    <label for="n_serie" class="block text-black text-sm font-sans italic mb-1">Número de Serie</label>
+    <input type="text" name="n_serie" id="n_serie" required
+           value="{{ form.n_serie.value|default:'' }}"
+           class="w-full rounded-md shadow-sm {% if form.n_serie.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}"
+           placeholder="Número de Serie">
+    {% if form.n_serie.errors %}
+      <div class="text-yellow-300 text-sm mt-1">{{ form.n_serie.errors|join:", " }}</div>
+    {% endif %}
+  </div>
+
+  <!-- Cuarta fila: UNIVE, BDO y NetBios -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    <div>
+      <label for="unive" class="block text-black text-sm font-sans italic mb-1">UNIVE</label>
+      <input type="text" name="unive" id="unive" required
+             value="{{ form.unive.value|default:'' }}"
+             class="w-full rounded-md shadow-sm {% if form.unive.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}"
+             placeholder="UNIVE">
+      {% if form.unive.errors %}
+        <div class="text-yellow-300 text-sm mt-1">{{ form.unive.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="bdo" class="block text-black text-sm font-sans italic mb-1">BDO</label>
+      <input type="text" name="bdo" id="bdo" required
+             value="{{ form.bdo.value|default:'' }}"
+             class="w-full rounded-md shadow-sm {% if form.bdo.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}"
+             placeholder="BDO">
+      {% if form.bdo.errors %}
+        <div class="text-yellow-300 text-sm mt-1">{{ form.bdo.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="netbios" class="block text-black text-sm font-sans italic mb-1">NetBios</label>
+      <input type="text" name="netbios" id="netbios" required
+             value="{{ form.netbios.value|default:'' }}"
+             class="w-full rounded-md shadow-sm {% if form.netbios.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}"
+             placeholder="NetBios">
+      {% if form.netbios.errors %}
+        <div class="text-yellow-300 text-sm mt-1">{{ form.netbios.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quinta fila: Ubicación -->
+  <div class="mb-4">
+    <label for="ubicacion" class="block text-black text-sm font-sans italic mb-1">Ubicación</label>
+    <select name="ubicacion" id="ubicacion" required
+            class="w-full rounded-md shadow-sm {% if form.ubicacion.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}">
+      <option value="">Seleccione ubicación</option>
+      <option value="Bodega Central" {% if form.ubicacion.value == "Bodega Central" %}selected{% endif %}>Bodega Central</option>
+      <option value="Laboratorio 1" {% if form.ubicacion.value == "Laboratorio 1" %}selected{% endif %}>Laboratorio 1</option>
+    </select>
+    {% if form.ubicacion.errors %}
+      <div class="text-yellow-300 text-sm mt-1">{{ form.ubicacion.errors|join:", " }}</div>
+    {% endif %}
+  </div>
+
+  <!-- Botones de acción -->
+  <div class="flex justify-between mt-6 w-full">
+    <a href="{% url 'all_in_one' %}"
+       class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+    <button type="submit"
+            class="bg-red-900 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-32">
+      Guardar
+    </button>
+  </div>
+
+  <!-- Contenedor de mensajes de error -->
+  {% if form.errors %}
+    <div class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+      {{ form.errors }}
+    </div>
+  {% endif %}
+</form>
+           </div>
+       </div>
+   </div>
+
+   {# Ya no se necesita el script de toggleOtraMarca #}
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar All In One Admin{% endblock %}
+
+{% block sidebar %}
+    {% include 'componentes/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+    <!-- Contenedor principal que ocupa toda la pantalla -->
+    <div class="relative min-h-screen">
+        <!-- Contenedor del formulario con margen izquierdo para el sidebar -->
+        <div class="flex flex-col md:flex-row flex-wrap justify-center items-center mx-auto">
+            <!-- Contenedor flex para imagen y formulario -->
+            <div class="flex flex-col md:flex-row">
+                <!-- Contenedor de la imagen del All In One (lado izquierdo) -->
+                <div class="flex-shrink-0 w-1/3 md:w-1/4 flex items-center justify-center p-4 mt-32">
+                    <img class="w-full h-auto rounded-lg shadow-lg" src="/static/imagenes/allinone.png" alt="Imagen All In One">
+                </div>
+                
+                <!-- Contenedor del formulario (lado derecho) -->
+                <div class="flex-1 p-6 md:p-8 bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-xl relative mt-32">
+                    <!-- Título del formulario -->
+                    <h2 class="text-black text-2xl font-sans mb-4">Registro Nuevo All In One Administrativos</h2>
+                    
+                    <!-- Formulario -->
+                   <form method="POST" action="{% url 'add_all_in_one_adm' %}">
+  {% csrf_token %}
+
+  <!-- Primera fila del formulario: Activo, Estado, Marca, Modelo, N° Serie -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div>
+      <label for="activo" class="block text-black text-sm font-sans italic mb-1">Activo</label>
+      <input type="text" name="activo" id="activo" value="All in One" readonly required
+             class="w-full rounded-md border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed"
+             placeholder="Activo">
+      {% if form.activo.errors %}
+        <div class="text-orange-600 text-sm mt-1">{{ form.activo.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="estado" class="block text-black text-sm font-sans italic mb-1">Estado</label>
+      <select name="estado" id="estado" required
+              class="w-full rounded-md border-gray-300 shadow-sm">
+        <option value="">Seleccione estado</option>
+        <option value="Operativo">Operativo</option>
+        <option value="Inactivo">Inactivo</option>
+      </select>
+      {% if form.estado.errors %}
+        <div class="text-orange-600 text-sm mt-1">{{ form.estado.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="marca" class="block text-black text-sm font-sans italic mb-1">Marca</label>
+      <select name="marca" id="marca" required
+              class="w-full rounded-md border-gray-300 shadow-sm">
+        <option value="">Seleccione marca</option>
+        <option value="Lenovo">Lenovo</option>
+        <option value="HP">HP</option>
+      </select>
+      {% if form.marca.errors %}
+        <div class="text-orange-600 text-sm mt-1">{{ form.marca.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="modelo" class="block text-black text-sm font-sans italic mb-1">Modelo</label>
+      <input type="text" name="modelo" id="modelo" required
+             value="{{ form.modelo.value|default:'' }}"
+             class="w-full rounded-md border-gray-300 shadow-sm"
+             placeholder="Modelo">
+      {% if form.modelo.errors %}
+        <div class="text-orange-600 text-sm mt-1">{{ form.modelo.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="n_serie" class="block text-black text-sm font-sans italic mb-1">Número de Serie</label>
+      <input type="text" name="n_serie" id="n_serie" required
+             value="{{ form.n_serie.value|default:'' }}"
+             class="w-full rounded-md border-gray-300 shadow-sm"
+             placeholder="Número de Serie">
+      {% if form.n_serie.errors %}
+        <div class="text-orange-600 text-sm mt-1">{{ form.n_serie.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Segunda fila del formulario: UNIVE, BDO, NetBios -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    <div>
+      <label for="unive" class="block text-black text-sm font-sans italic mb-1">UNIVE</label>
+      <input type="text" name="unive" id="unive" required
+             value="{{ form.unive.value|default:'' }}"
+             class="w-full rounded-md border-gray-300 shadow-sm"
+             placeholder="UNIVE">
+      {% if form.unive.errors %}
+        <div class="text-orange-600 text-sm mt-1">{{ form.unive.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="bdo" class="block text-black text-sm font-sans italic mb-1">BDO</label>
+      <input type="text" name="bdo" id="bdo" required
+             value="{{ form.bdo.value|default:'' }}"
+             class="w-full rounded-md border-gray-300 shadow-sm"
+             placeholder="BDO">
+      {% if form.bdo.errors %}
+        <div class="text-orange-600 text-sm mt-1">{{ form.bdo.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="netbios" class="block text-black text-sm font-sans italic mb-1">NetBios</label>
+      <input type="text" name="netbios" id="netbios" required
+             value="{{ form.netbios.value|default:'' }}"
+             class="w-full rounded-md border-gray-300 shadow-sm"
+             placeholder="NetBios">
+      {% if form.netbios.errors %}
+        <div class="text-orange-600 text-sm mt-1">{{ form.netbios.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Tercera fila del formulario: Ubicación -->
+  <div class="mb-4">
+    <label for="ubicacion" class="block text-black text-sm font-sans italic mb-1">Ubicación</label>
+    <select name="ubicacion" id="ubicacion" required
+            class="w-full rounded-md border-gray-300 shadow-sm">
+      <option value="">Seleccione ubicación</option>
+      <option value="Bodega Central">Bodega Central</option>
+      <option value="Laboratorio 1">Laboratorio 1</option>
+    </select>
+    {% if form.ubicacion.errors %}
+      <div class="text-orange-600 text-sm mt-1">{{ form.ubicacion.errors|join:", " }}</div>
+    {% endif %}
+  </div>
+
+  <!-- Campo Usuario Registrador (solo lectura) -->
+  <div class="mb-4">
+    <label for="registrado_por" class="block text-black text-sm font-sans italic mb-1">Registrado por</label>
+    <input type="text" id="registrado_por"
+           value="{{ request.user.get_full_name|default:request.user.username }}"
+           readonly
+           class="w-full rounded-md border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed"
+           placeholder="Usuario actual">
+  </div>
+
+  <!-- Botones -->
+  <div class="flex justify-between mt-6 w-full">
+    <a href="{% url 'all_in_one_adm' %}"
+       class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+    <button type="submit"
+            class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
+      Guardar
+    </button>
+  </div>
+</form>
+
+<!-- Contenedor de mensajes de error del formulario -->
+{% if form.errors %}
+  <div class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+    {{ form.errors }}
+  </div>
+{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

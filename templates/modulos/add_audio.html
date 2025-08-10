@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Agregar Equipo de Evento{% endblock %}
+
+{% block sidebar %}
+    {% include 'componentes/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="relative min-h-screen">
+
+    <div class="flex flex-col md:flex-row flex-wrap justify-center items-center mx-auto">
+
+        <!-- Imagen -->
+        <div class="flex-shrink-0 w-1/3 md:w-1/4 flex items-center justify-center p-4 mt-32">
+            <img src="{% static 'imagenes/Speaker-sound-music-audio-equipment-loudspeaker-box-home-theater-system_335016_wh1200.png' %}" 
+                 alt="Imagen del Equipo de Evento" 
+                 class="w-full h-auto rounded-lg shadow-lg">
+        </div>
+
+        <!-- Formulario -->
+        <div class="flex-1 p-8 bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-xl relative mt-32 w-full md:w-3/4">
+            <h2 class="text-black text-2xl font-sans mb-6">Registro Nuevo Equipo de Evento</h2>
+
+            <form method="POST" action="{% url 'add_audio' %}">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Activo -->
+        <div>
+            <label for="activo" class="block text-black text-sm font-sans italic mb-1">Activo</label>
+            <input type="text" id="activo" name="activo"
+                value="{{ form.activo.value|default:'Audio Avanzado' }}"
+                readonly
+                class="w-full rounded-md border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed">
+            {% for error in form.activo.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Estado -->
+        <div>
+            <label for="estado" class="block text-black text-sm font-sans italic mb-1">Estado</label>
+            <select id="estado" name="estado" required class="w-full rounded-md border-gray-300 shadow-sm">
+                <option value="" disabled selected>Selecciona estado</option>
+                <option value="Operativo" {% if form.estado.value == "Operativo" %}selected{% endif %}>Operativo</option>
+                <option value="Inactivo" {% if form.estado.value == "Inactivo" %}selected{% endif %}>Inactivo</option>
+            </select>
+            {% for error in form.estado.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Marca -->
+        <div>
+            <label for="marca" class="block text-black text-sm font-sans italic mb-1">Marca</label>
+            <select id="marca" name="marca" required class="w-full rounded-md border-gray-300 shadow-sm">
+                <option value="" disabled selected>Selecciona una marca</option>
+                <option value="HP" {% if form.marca.value == "HP" %}selected{% endif %}>HP</option>
+                <option value="Lenovo" {% if form.marca.value == "Lenovo" %}selected{% endif %}>Lenovo</option>
+            </select>
+            {% for error in form.marca.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Modelo -->
+        <div>
+            <label for="modelo" class="block text-black text-sm font-sans italic mb-1">Modelo</label>
+            <input type="text" id="modelo" name="modelo"
+                value="{{ form.modelo.value|default:'' }}"
+                required
+                class="w-full rounded-md border-gray-300 shadow-sm">
+            {% for error in form.modelo.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- N° de Serie -->
+        <div>
+            <label for="n_serie" class="block text-black text-sm font-sans italic mb-1">N° de Serie</label>
+            <input type="text" id="n_serie" name="n_serie"
+                value="{{ form.n_serie.value|default:'' }}"
+                required
+                class="w-full rounded-md border-gray-300 shadow-sm">
+            {% for error in form.n_serie.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- UNIVE -->
+        <div>
+            <label for="unive" class="block text-black text-sm font-sans italic mb-1">UNIVE</label>
+            <input type="text" id="unive" name="unive"
+                value="{{ form.unive.value|default:'' }}"
+                required
+                class="w-full rounded-md border-gray-300 shadow-sm">
+            {% for error in form.unive.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- BDO -->
+        <div>
+            <label for="bdo" class="block text-black text-sm font-sans italic mb-1">BDO</label>
+            <input type="text" id="bdo" name="bdo"
+                value="{{ form.bdo.value|default:'0' }}"
+                required
+                class="w-full rounded-md border-gray-300 shadow-sm">
+            {% for error in form.bdo.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Ubicación -->
+        <div>
+            <label for="ubicacion" class="block text-black text-sm font-sans italic mb-1">Ubicación</label>
+            <select id="ubicacion" name="ubicacion" required class="w-full rounded-md border-gray-300 shadow-sm">
+                <option value="" disabled selected>Selecciona ubicación</option>
+                <option value="Bodega Central" {% if form.ubicacion.value == "Bodega Central" %}selected{% endif %}>Bodega Central</option>
+                <option value="Laboratorio" {% if form.ubicacion.value == "Laboratorio" %}selected{% endif %}>Laboratorio</option>
+            </select>
+            {% for error in form.ubicacion.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+    </div>
+
+                <!-- Botones -->
+                <div class="flex justify-between mt-8">
+                    <a href="{% url 'audio_list' %}"
+                       class="bg-red-900 hover:bg-red-500 text-white font-medium py-2 px-4 rounded-lg transition duration-200 w-32 text-center">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <button type="submit"
+                            class="bg-red-900 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-32">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+
+            {% if form.non_field_errors %}
+                <div class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}
