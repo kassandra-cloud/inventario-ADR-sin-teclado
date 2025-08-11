@@ -105,19 +105,19 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),  # Usando config() para leer la variable
-        'PORT':config('DB_PORT',cast=int)
-
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT', cast=int),
+        'OPTIONS': {
+            'ssl': {'ssl': {}}  # o especificar CA si Clever-Cloud te lo da
+        }
     }
 }
-
 
 
 # Password validation
