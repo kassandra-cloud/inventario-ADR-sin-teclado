@@ -2,7 +2,7 @@ name: DB Backup (mysqldump + email)
 
 on:
   schedule:
-    # Lunes 14:00 Chile (UTC-3) = 17:00 UTC  (ajusta si quieres)
+    # Lunes 14:00 Chile (UTC-3) = 17:00 UTC
     - cron: "0 17 * * 1"
   workflow_dispatch: {}
 
@@ -26,13 +26,13 @@ jobs:
       DB_PORT: ${{ secrets.DB_PORT }}
 
       # Email
-      EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
-      EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
-      EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
+      EMAIL_HOST: ${{ secrets.EMAIL_HOST }}           # p.ej. smtp.gmail.com
+      EMAIL_PORT: ${{ secrets.EMAIL_PORT }}           # 465 si usas SSL
+      EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }} # remitente
       EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
-      EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
+      EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}  # separados por coma
 
-      # MySQL para el dump (si tu comando los usa)
+      # Credenciales para mysqldump si tu comando las usa por ENV
       MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
       MYSQL_USER: ${{ secrets.MYSQL_USER }}
       MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
@@ -62,14 +62,63 @@ jobs:
 
       - name: Debug email env (temporal)
         run: |
-          echo "FROM=$EMAIL_HOST_USER"
-          echo "TO=$EMAIL_RECIPIENTS"
-          echo "SMTP=$EMAIL_HOST:$EMAIL_PORT"
+          echo "FROM set? -> $([ -n "$EMAIL_HOST_USER" ] && echo yes || echo no)"
+          echo "TO set?   -> $([ -n "$EMAIL_RECIPIENTS" ] && echo yes || echo no)"
+          echo "SMTP set? -> $([ -n "$EMAIL_HOST" ] && echo yes || echo no):$([ -n "$EMAIL_PORT" ] && echo yes || echo no)"
 
       - name: Run Django backup command
         run: python manage.py backup_db
 
-      - name: Upload artifact (opcional)
+      - name: Locate newest backup file
+        id: find_backup
+        shell: bash
+        run: |
+          set -e
+          FILE=$(ls -1t "$BACKUP_DIR" | head -n1 || true)
+          if [ -z "$FILE" ]; then
+            echo "No backup file found in $BACKUP_DIR" >&2
+            exit 1
+          fi
+          echo "path=$BACKUP_DIR/$FILE" >> "$GITHUB_OUTPUT"
+          echo "Found: $BACKUP_DIR/$FILE"
+
+      - name: Send backup by SMTP (attach)
+        # Envío directo sin depender de Django, para ver éxito/fallo en logs
+        run: |
+          python - <<'PY'
+          import os, ssl, smtplib, mimetypes
+          from email.message import EmailMessage
+          path = os.environ["BACKUP_FILE"]
+          sender = os.environ["EMAIL_HOST_USER"]
+          recipients = [r.strip() for r in os.environ["EMAIL_RECIPIENTS"].split(",") if r.strip()]
+          if not recipients:
+            raise SystemExit("ERROR: EMAIL_RECIPIENTS vacío")
+
+          msg = EmailMessage()
+          msg["Subject"] = f"Backup automático - {os.path.basename(path)}"
+          msg["From"] = sender
+          msg["To"] = ", ".join(recipients)
+          msg.set_content("Adjunto el backup generado por GitHub Actions.")
+
+          ctype, _ = mimetypes.guess_type(path)
+          if ctype is None:
+            ctype = "application/octet-stream"
+          with open(path, "rb") as f:
+            msg.add_attachment(f.read(), maintype=ctype.split("/")[0], subtype=ctype.split("/")[1], filename=os.path.basename(path))
+
+          ctx = ssl.create_default_context()
+          with smtplib.SMTP_SSL(os.environ["EMAIL_HOST"], int(os.environ["EMAIL_PORT"]), context=ctx) as s:
+            s.login(os.environ["EMAIL_HOST_USER"], os.environ["EMAIL_HOST_PASSWORD"])
+            resp = s.send_message(msg)
+          # send_message devuelve dict de errores; vacío == OK
+          if resp:
+            raise SystemExit(f"ERROR: SMTP no entregó a: {resp}")
+          print(f"SMTP OK: enviado a {recipients} con adjunto {os.path.basename(path)}")
+          PY
+        env:
+          BACKUP_FILE: ${{ steps.find_backup.outputs.path }}
+
+      - name: Upload artifact (copia de seguridad)
         uses: actions/upload-artifact@v4
         with:
           name: mysql-backup
