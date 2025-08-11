@@ -4,7 +4,7 @@ on:
   schedule:
     # Domingo 14:00 Chile (UTC-3) = 17:00 UTC
     - cron: "0 17 * * 0"
-  workflow_dispatch: {}  # ejecución manual desde Actions
+  workflow_dispatch: {} # ejecución manual desde Actions
 
 jobs:
   backup:
@@ -16,21 +16,20 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
       BACKUP_DIR: ${{ github.workspace }}/backups
 
-      # MySQL (desde Secrets)
-      MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
-      MYSQL_USER: ${{ secrets.MYSQL_USER }}
-      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-      MYSQL_DB: ${{ secrets.MYSQL_DB }}
-
-      # Email (desde Secrets)
+      # Variables de entorno desde GitHub Secrets
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_PORT: ${{ secrets.DB_PORT }}
       EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
       EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
       EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
       EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
-      EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -51,12 +50,6 @@ jobs:
       - name: Prepare backup dir
         run: mkdir -p "$BACKUP_DIR"
 
-      - name: Debug email env
-        run: |
-          echo "FROM=$EMAIL_HOST_USER"
-          echo "TO=$EMAIL_RECIPIENTS"
-          echo "SMTP=$EMAIL_HOST:$EMAIL_PORT"
-
       - name: Run Django backup command
         run: python manage.py backup_db
 
@@ -66,4 +59,3 @@ jobs:
           name: mysql-backup
           path: ${{ env.BACKUP_DIR }}/*.sql*
           if-no-files-found: ignore
-
