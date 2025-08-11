@@ -4,7 +4,7 @@ on:
   schedule:
     # Domingo 14:00 Chile (UTC-3) = 17:00 UTC
     - cron: "0 17 * * 0"
-  workflow_dispatch: {}   # ejecución manual desde Actions
+  workflow_dispatch: {} # ejecución manual desde Actions
 
 jobs:
   backup:
@@ -16,25 +16,34 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
       BACKUP_DIR: ${{ github.workspace }}/backups
 
-      # MySQL (desde Secrets)
-      MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
-      MYSQL_USER: ${{ secrets.MYSQL_USER }}
-      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-      MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+      # Django (settings.py con decouple)
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DEBUG: ${{ secrets.DEBUG }}
 
-      # Email (desde Secrets)
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+
       EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
       EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
       EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
       EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
       EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
 
+      # Variables para mysqldump (si tu backup_db.py las usa)
+      MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+      MYSQL_USER: ${{ secrets.MYSQL_USER }}
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+      MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
