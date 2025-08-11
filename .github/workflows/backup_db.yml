@@ -14,9 +14,6 @@ jobs:
       DJANGO_SETTINGS_MODULE: core.settings
       PYTHONUNBUFFERED: "1"
       PYTHONPATH: ${{ github.workspace }}
-      BACKUP_DIR: ${{ github.workspace }}/backups
-
-      # Variables de entorno desde GitHub Secrets
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       DEBUG: ${{ secrets.DEBUG }}
       DB_NAME: ${{ secrets.DB_NAME }}
@@ -28,35 +25,34 @@ jobs:
       EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
       EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
       EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+      EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
-      - name: Install system deps (mysql-client)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mysql-client
-
-      - name: Install Python deps
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Prepare backup dir
-        run: mkdir -p "$BACKUP_DIR"
+      - name: Debug email env
+        run: |
+          echo "FROM=$EMAIL_HOST_USER"
+          echo "TO=$EMAIL_RECIPIENTS"
+          echo "SMTP=$EMAIL_HOST:$EMAIL_PORT"
 
       - name: Run Django backup command
         run: python manage.py backup_db
 
-      - name: Upload artifact (opcional)
-        uses: actions/upload-artifact@v4
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v3
         with:
           name: mysql-backup
-          path: ${{ env.BACKUP_DIR }}/*.sql*
-          if-no-files-found: ignore
+          path: backups/
+
