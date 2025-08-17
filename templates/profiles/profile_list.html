@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Listado de Perfiles{% endblock %}
 {% block sidebar %}<div class="contents">{% include 'componentes/sidebar.html' %}</div>{% endblock %}
@@ -35,7 +36,7 @@
 
   {% if profiles_with_singular_groups %}
 
-  {# --------- MÓVIL: CARDS (con colores) --------- #}
+  {# --------- MÓVIL: CARDS --------- #}
   <div class="space-y-3 md:hidden">
     {% for p in profiles_with_singular_groups %}
       <div class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
@@ -46,8 +47,16 @@
           {% elif 'Usuario' in p.singular_groups %} from-zinc-900 to-zinc-950 text-neutral-100
           {% else %} from-gray-500 to-gray-900 text-white
           {% endif %}">
-          <img src="{{ p.profile.image.url }}" alt="{{ p.profile.user.username }}"
-               class="w-9 h-9 rounded-full object-cover ring-2 ring-white/40">
+          
+          {% if p.profile.image and p.profile.image.name %}
+            <img src="{{ p.profile.image.url }}" alt="{{ p.profile.user.username }}"
+                 class="w-9 h-9 rounded-full object-cover ring-2 ring-white/40"
+                 onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'>
+          {% else %}
+            <img src="{% get_media_prefix %}default.png" alt="{{ p.profile.user.username }}"
+                 class="w-9 h-9 rounded-full object-cover ring-2 ring-white/40">
+          {% endif %}
+
           <div class="font-semibold text-sm">{{ p.profile.user.username }}</div>
         </div>
         <div class="p-4 text-[13px]">
@@ -70,7 +79,7 @@
     {% endfor %}
   </div>
 
-  {# --------- ESCRITORIO: TABLA (con colores por fila) --------- #}
+  {# --------- ESCRITORIO: TABLA --------- #}
   <div class="hidden md:block">
     <div class="relative overflow-x-auto rounded shadow ring-1 ring-black/5">
       <table class="min-w-[1000px] w-full table-fixed bg-white">
@@ -97,8 +106,14 @@
             {% elif 'Alumno en Práctica' in r.singular_groups %} bg-gradient-to-tr from-gray-500 to-gray-900 text-white
             {% endif %}">
             <td class="px-2 py-1 text-center">
-              <img src="{{ r.profile.image.url }}" alt="{{ r.profile.user.username }}"
-                   class="w-10 h-10 object-cover rounded-full mx-auto ring-2 ring-white/40">
+              {% if r.profile.image and r.profile.image.name %}
+                <img src="{{ r.profile.image.url }}" alt="{{ r.profile.user.username }}"
+                     class="w-10 h-10 object-cover rounded-full mx-auto ring-2 ring-white/40"
+                     onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'>
+              {% else %}
+                <img src="{% get_media_prefix %}default.png" alt="{{ r.profile.user.username }}"
+                     class="w-10 h-10 object-cover rounded-full mx-auto ring-2 ring-white/40">
+              {% endif %}
             </td>
             <td class="px-2 py-1 text-left">{{ r.profile.user.username|capfirst }}</td>
             <td class="px-2 py-1 text-left">{{ r.profile.user.first_name|capfirst }}</td>

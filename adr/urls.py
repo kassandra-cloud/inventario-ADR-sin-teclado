@@ -28,6 +28,10 @@ from .views import (
     ConfirmarRestauracionView, EliminadosListView, DeleteToEliminadosView, detalle_activo_busqueda
 )
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+from .views import UserPasswordChangeView
+from .forms import LoginForm
 
 
 urlpatterns = [
@@ -40,12 +44,27 @@ urlpatterns = [
     path('add_user/', login_required(AddUserView.as_view()), name="add_user"),
     path('profile_edit/<int:pk>/edit/', ProfileUpdateView.as_view(), name='profile_edit'),  # Edición de perfil
     path('profile_list/', login_required(ProfileListView.as_view()), name="profile_list"),
+    path("mi-perfil/", views.my_profile, name="my_profile"),
     path('profile_delete/<int:pk>/', login_required(ProfileDeleteView.as_view()), name='profile_delete'),
-    
+     path("perfil/contraseña/cambiar/", UserPasswordChangeView.as_view(), name="password_change"),
     # Páginas Principales
     path('', IndexView.as_view(), name="index"),
         # Nueva ruta
     path('inicio/', login_required(HomeView.as_view()), name='inicio'),
+     path(
+        "login/",
+        LoginView.as_view(
+            authentication_form= LoginForm,
+            template_name="registration/login.html",
+        ),
+        name="login",
+    ),
+    
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+   
         # Redirección LEGACY con nombre 'home' (así reverse('home') sigue funcionando)
     path('home/', RedirectView.as_view(pattern_name='inicio', permanent=True), name='home'),
     path('all_in_one_selection/', login_required(views.AllInOneSelectionView.as_view()), name='all_in_one_selection'),
@@ -127,7 +146,7 @@ urlpatterns = [
     path('upload_excel_bodega_adr/', login_required(UploadExcelBodegaADRView.as_view()), name='upload_excel_bodega_adr'),
     path('upload_excel_azotea/', login_required(UploadExcelAzoteaView.as_view()), name='upload_excel_azotea'),
 
-path('upload_excel_monitor/', login_required(views.UploadExcelMonitorView.as_view()), name='upload_excel_monitor'),
+    path('upload_excel_monitor/', login_required(views.UploadExcelMonitorView.as_view()), name='upload_excel_monitor'),
     path('upload_excel_audio/', login_required(views.UploadExcelAudioView.as_view()), name='upload_excel_audio'),
     path('upload_excel_tablet/', login_required(views.UploadExcelTabletView.as_view()), name='upload_excel_tablet'),
     path('upload_success/', TemplateView.as_view(template_name="upload_success.html"), name='upload_success'),
@@ -150,3 +169,5 @@ path('upload_excel_monitor/', login_required(views.UploadExcelMonitorView.as_vie
 ]
 
 
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

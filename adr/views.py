@@ -28,8 +28,8 @@ from django.urls import reverse
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType # Para obtener el modelo dinámicamente
 from django.contrib.contenttypes.models import ContentType # Para obtener el modelo dinámicamente
-
-
+from django.db import models
+from .models import Profile
 from decimal import Decimal
 from uuid import UUID
 
@@ -75,39 +75,89 @@ from .decorators import add_group_name_to_context, get_group_and_color
 from django.core.mail import send_mail
 
 from django.core.mail import send_mail, EmailMessage # Importar EmailMessage
+from .forms import ProfileImageForm
 import os # Importar os
 import tempfile # Importar tempfile
-
-def enviar_notificacion_asunto(asunto, mensaje, destinatarios, adjunto=None):
-    temp_file_path = None
-    try:
-        email = EmailMessage(
-            asunto,
-            mensaje,
-            settings.EMAIL_HOST_USER,  # Remitente
-            destinatarios,  # Lista de destinatarios
-        )
-        if adjunto:
-            # Guardar el archivo adjunto temporalmente
-            with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(adjunto.name)[1]) as temp_file:
-                for chunk in adjunto.chunks():
-                    temp_file.write(chunk)
-                temp_file_path = temp_file.name
-
-            # Adjuntar el archivo temporal
-            email.attach_file(temp_file_path, mimetype=adjunto.content_type)
-
-        email.send(fail_silently=False)
-        print("Correo enviado exitosamente.")
-    except Exception as e:
-        print(f"Error al enviar correo: {str(e)}")
-    finally:
-        # Eliminar el archivo temporal si existe
-        if temp_file_path and os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib.messages.views import SuccessMessageMixin
+from django.urls import reverse_lazy
+from .forms import LoginForm 
 
 
+#logica para que el usuario pueda editar su foto
+@login_required
+def my_profile(request):
+    user = request.user
+    profile = user.profile  # OneToOne con User
+
+    if request.method == "POST":
+        form = ProfileImageForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Tu foto de perfil fue actualizada.")
+            return redirect("my_profile")
+        else:
+            messages.error(request, "No se pudo actualizar la foto. Revisa el archivo.")
+    else:
+        form = ProfileImageForm(instance=profile)
+
+    # Para que el navbar pinte según el grupo
+    group = user.groups.first().name if user.groups.exists() else "Usuario"
+
+    return render(
+        request,
+        "profiles/my_profile.html",
+        {
+            "form": form,                    # <- usa siempre 'form'
+            "user_profile": user,
+            "group_name_singular": group,    # <- para el navbar por rango
+        },
+    )
+from io import BytesIO
+from uuid import uuid4
+from PIL import Image, ImageOps
+from django.core.files.base import ContentFile
+from django.contrib.auth.views import PasswordResetView
+
+def make_avatar_square(django_file, size=512, fmt="WEBP", quality=86):
+    """
+    - Corrige orientación EXIF
+    - Recorte centrado a cuadrado
+    - Redimensiona con LANCZOS
+    - Exporta a WEBP (o JPEG)
+    """
+    img = Image.open(django_file)
+    img = ImageOps.exif_transpose(img)     # corrige orientación
+    img = img.convert("RGB")
+
+    w, h = img.size
+    side = min(w, h)
+    left = (w - side) // 2
+    top  = (h - side) // 2
+    img = img.crop((left, top, left + side, top + side))
+    img = img.resize((size, size), Image.LANCZOS)
+
+    buf = BytesIO()
+    if fmt.upper() == "WEBP":
+        img.save(buf, "WEBP", quality=quality, method=6)
+        ext = "webp"
+    else:
+        img.save(buf, "JPEG", quality=quality, optimize=True, progressive=True)
+        ext = "jpg"
+
+    name = f"avatar_{uuid4().hex}.{ext}"
+    return ContentFile(buf.getvalue(), name=name)
+class UserPasswordChangeView(LoginRequiredMixin, SuccessMessageMixin, PasswordChangeView):
+    template_name = "profiles/password_change.html"
+    success_url = reverse_lazy("my_profile")      # <-- vuelve al perfil
+    success_message = "Tu contraseña se cambió correctamente."
 # Vista para descargar archivos Excel
+class CustomPasswordResetView(PasswordResetView):
+    email_template_name = 'registration/password_reset_email.txt'
+    def dispatch(self, request, *args, **kwargs):
+        messages.success(request, "Tu contraseña fue cambiada correctamente.")
+        return redirect(reverse_lazy('inicio'))  # Cambia 'inicio' por el nombre de tu URL de inicio
 @add_group_name_to_context
 class DescargarExcelView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     """Vista para descargar datos en formato Excel"""
@@ -344,7 +394,7 @@ class ProfileListView(LoginRequiredMixin, ListView):
 
         context['profiles_with_singular_groups'] = profiles_with_singular_groups
         return context
-    
+
 @add_group_name_to_context
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = Profile
@@ -354,8 +404,7 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_object(self):
         """Obtiene el perfil a editar usando el pk del perfil"""
-        profile = get_object_or_404(Profile, user__pk=self.kwargs['pk'])
-        return profile
+        return get_object_or_404(Profile, user__pk=self.kwargs['pk'])
 
     def get_context_data(self, **kwargs):
         """
@@ -376,28 +425,36 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     def post(self, request, *args, **kwargs):
         profile = self.get_object()
         user = profile.user
+
+        # --- NUEVO: eliminar solo la foto de perfil (sin tocar otros datos) ---
+        if 'delete_image' in request.POST:
+            profile.clear_image()
+            messages.success(request, 'La foto de perfil fue eliminada y se restauró la imagen por defecto.')
+            return redirect(request.path)
+
+        # --- Flujo normal de actualización ---
         user_form = UserForm(request.POST, instance=user)
         profile_form = ProfileForm(request.POST, request.FILES, instance=profile)
 
-        # Obtener los datos de las nuevas contraseñas
+        # Obtener las nuevas contraseñas
         new_password1 = request.POST.get("new_password1")
         new_password2 = request.POST.get("new_password2")
 
         if user_form.is_valid() and profile_form.is_valid():
-            # Guardar datos básicos del usuario y perfil
+            # Guardar usuario y perfil
             user_form.save()
             profile_form.save()
 
-            # Asignar el grupo seleccionado
+            # Asignar grupo
             group_id = request.POST.get('group')
             grupo_asignado = "No asignado"
             if group_id:
                 new_group = Group.objects.get(id=group_id)
-                user.groups.clear()  # Elimina todos los grupos actuales
-                user.groups.add(new_group)  # Agrega el nuevo grupo seleccionado
+                user.groups.clear()
+                user.groups.add(new_group)
                 grupo_asignado = new_group.name
 
-            # Verificar y cambiar la contraseña si ambas coinciden y están ingresadas
+            # Cambio de contraseña (opcional)
             password_cambiada = False
             if new_password1 and new_password1 == new_password2:
                 user.set_password(new_password1)
@@ -405,10 +462,9 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
                 password_cambiada = True
                 messages.success(request, 'Contraseña actualizada exitosamente')
             elif new_password1 or new_password2:
-                # Mensaje de error si las contraseñas no coinciden o solo una fue llenada
                 messages.error(request, 'Las contraseñas no coinciden. Por favor, intente nuevamente.')
 
-            # Enviar notificación por correo
+            # Notificación por correo
             accion = "Actualización de Perfil"
             mensaje = f"""
             El usuario {request.user.get_full_name()} ha actualizado el perfil de usuario.
@@ -419,14 +475,12 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
             Grupo Asignado: {grupo_asignado}
             Contraseña: {"Cambiada" if password_cambiada else "No Cambiada"}
             """
-
             try:
                 enviar_notificacion_asunto(
                     asunto="Actualización de Perfil de Usuario",
                     mensaje=mensaje,
                     destinatarios=settings.EMAIL_RECIPIENTS
                 )
-                print("Correo de actualización de perfil enviado.")
             except Exception as e:
                 print(f"Error al enviar el correo de notificación: {str(e)}")
                 messages.error(request, 'Error al enviar el correo de notificación.')
@@ -434,12 +488,12 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
             messages.success(request, 'Usuario editado exitosamente')
             return redirect('profile_list')
 
-        # Si hay errores en el formulario, se renderiza de nuevo
+        # Errores de validación
         context = self.get_context_data()
         context['user_form'] = user_form
         context['profile_form'] = profile_form
         return render(request, 'profiles/profile_edit.html', context)
-    
+
     def get_success_url(self):
         """Redirige después de guardar"""
         return reverse_lazy('profile_list')

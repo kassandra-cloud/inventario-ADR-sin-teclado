@@ -11,6 +11,7 @@ from .models import (
     AllInOne, AllInOneAdmins, Notebook, MiniPC,
     Proyectores, BodegaADR, Azotea, Monitor, Audio, Tablet # Nuevos modelos
 )
+from accounts.models import Profile
 from .opciones import (
     opciones_sala_All_In_One, 
     opciones_estado, 
@@ -28,9 +29,90 @@ from .opciones import (
     opciones_edificio,
     opciones_marca_monitor, opciones_ubicacion_monitor # Opciones para Monitor
 ) # Eliminado opciones_ubicacion_tablet y opciones_marca_tablet
+from django import forms
+from PIL import Image
+from .models import Profile
+from .utils import make_avatar_square
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+from django.core.cache import cache
+from django.utils import timezone
+from datetime import datetime
+from django.contrib.auth import get_user_model
+from django import forms
+from django.contrib.auth.forms import SetPasswordForm
+from django.core.cache import cache
 
+
+
+# Copiamos la misma función para evitar dependencias cruzadas
+def _lock_key(username=None, ip=None):
+    return f"login_lock:{username or 'unknown'}:{ip or 'unknown'}"
+
+class LoginForm(AuthenticationForm):
+    def clean(self):
+        User = get_user_model()
+        uname_field = getattr(User, "USERNAME_FIELD", "username")
+
+        # toma el valor ingresado sin importar el nombre del input
+        username = (self.data.get(uname_field) or self.data.get("username") or "").strip().lower()
+        ip = self.request.META.get("REMOTE_ADDR") if self.request else None
+
+        lock_until_iso = cache.get(_lock_key(username, ip))
+        if lock_until_iso:
+            try:
+                lock_until = datetime.fromisoformat(lock_until_iso)
+            except Exception:
+                lock_until = None
+
+            if lock_until and lock_until > timezone.now():
+                remaining = int((lock_until - timezone.now()).total_seconds())
+                m, s = divmod(remaining, 60)
+                raise forms.ValidationError(
+                    f"Acceso bloqueado por seguridad. Intenta nuevamente en {m:02d}:{s:02d}."
+                )
+            else:
+                cache.delete(_lock_key(username, ip))
+
+        return super().clean()
 # -------- FORMULARIOS DE AUTENTICACIÓN --------
+class ProfileImageForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ["image"]
 
+    def clean_image(self):
+        f = self.cleaned_data.get("image")
+        if not f:
+            return f
+
+        # Tamaño (2 MB de ejemplo)
+        if f.size > 2 * 1024 * 1024:
+            raise forms.ValidationError("Máximo 2 MB.")
+
+        # Resolución mínima
+        try:
+            img = Image.open(f)
+            w, h = img.size
+            if w < 400 or h < 400:
+                raise forms.ValidationError("Resolución mínima: 400×400 px.")
+            f.seek(0)  # importante: rebobinar
+        except Exception:
+            raise forms.ValidationError("Archivo de imagen inválido.")
+
+        return f
+
+    def save(self, commit=True):
+        profile = super().save(commit=False)
+        f = self.cleaned_data.get("image")
+        if f:
+            # Procesa a cuadrado de 512 (calidad alta) y guarda como WEBP
+            processed = make_avatar_square(f, size=512, fmt="WEBP", quality=86)
+            profile.image.save(processed.name, processed, save=False)
+
+        if commit:
+            profile.save(update_fields=["image"])
+        return profile
 class LoginForm(AuthenticationForm):
     """Formulario de inicio de sesión"""
     pass
@@ -92,7 +174,7 @@ class UserForm(forms.ModelForm):
     """Formulario para actualización de datos básicos del usuario"""
     class Meta:
         model = User
-        fields = ['first_name', 'last_name']
+        fields = ['first_name', 'last_name','email']
 
 class ProfileForm(forms.ModelForm):
     """Formulario para el perfil de usuario"""

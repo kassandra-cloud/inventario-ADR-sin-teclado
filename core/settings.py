@@ -95,6 +95,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                "core.context_processors.group_and_user",
             ],
         },
     },
@@ -124,20 +125,12 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+     "OPTIONS": {"min_length": 12}},   # ← antes 8, ahora 12
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -218,8 +211,13 @@ EMAIL_RECIPIENTS = [
     #'pcasanga@inacap.cl',#'farnaldi@inacap.cl'
     'kramosv@inacap.cl','kassramosveg@gmail.com', 
 ]
-
+# Parámetros de seguridad para el login
+LOGIN_FAILED_THRESHOLD = 3         # intentos fallidos para alertar
+LOGIN_FAILED_WINDOW_SECONDS = 900  # ventana de 15 min para el conteo (ajústalo)
+LOGIN_LOCK_SECONDS = 60
 
 # (opcional) carpeta donde guardar temporales de backup
 BACKUP_DIR = config('BACKUP_DIR', default=os.path.join(BASE_DIR, 'backups'))
+
+PASSWORD_RESET_TIMEOUT = 60 * 60       # (opcional) 1 hora de validez del link
 

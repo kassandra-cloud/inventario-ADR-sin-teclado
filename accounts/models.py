@@ -31,6 +31,17 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"Perfil de {self.user.username}"
+        # SIN default aquí: que pueda quedar vacío
+    image = models.ImageField(upload_to='profiles/', null=True, blank=True)
+
+    def clear_image(self, save=True):
+        """Elimina el archivo (si existe) y deja el campo vacío (None), igual que el admin."""
+        if self.image:
+            # borra el archivo del storage, pero no guardes aún
+            self.image.delete(save=False)
+        self.image = None
+        if save:
+            self.save(update_fields=['image'])
 
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
