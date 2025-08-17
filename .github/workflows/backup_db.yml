@@ -26,13 +26,13 @@ jobs:
       DB_PORT: ${{ secrets.DB_PORT }}
 
       # Email
-      EMAIL_HOST: ${{ secrets.EMAIL_HOST }}           # p.ej. smtp.gmail.com
-      EMAIL_PORT: ${{ secrets.EMAIL_PORT }}           # 465 si usas SSL
-      EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }} # remitente
+      EMAIL_HOST: ${{ secrets.EMAIL_HOST }}           
+      EMAIL_PORT: ${{ secrets.EMAIL_PORT }}           
+      EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }} 
       EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
-      EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}  # separados por coma
+      EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
 
-      # Credenciales para mysqldump si tu comando las usa por ENV
+      # Credenciales MySQL
       MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
       MYSQL_USER: ${{ secrets.MYSQL_USER }}
       MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
@@ -59,12 +59,6 @@ jobs:
 
       - name: Prepare backup dir
         run: mkdir -p "$BACKUP_DIR"
-
-      - name: Debug email env (temporal)
-        run: |
-          echo "FROM set? -> $([ -n "$EMAIL_HOST_USER" ] && echo yes || echo no)"
-          echo "TO set?   -> $([ -n "$EMAIL_RECIPIENTS" ] && echo yes || echo no)"
-          echo "SMTP set? -> $([ -n "$EMAIL_HOST" ] && echo yes || echo no):$([ -n "$EMAIL_PORT" ] && echo yes || echo no)"
 
       - name: Run Django backup command
         run: python manage.py backup_db
@@ -95,15 +89,14 @@ jobs:
               raise SystemExit("ERROR: EMAIL_RECIPIENTS vacío")
 
           msg = EmailMessage()
-          msg["Subject"] = f"Respaldo automático de base de datos - {os.path.basename(path)}"
+          msg["Subject"] = f"Respaldo de base de datos - {os.path.basename(path)}"
           msg["From"] = sender
           msg["To"] = ", ".join(recipients)
           msg.set_content(
               "Estimado/a,\n\n"
-              "Se adjunta el respaldo automático de la base de datos generado por el flujo de trabajo "
-              "programado en GitHub Actions.\n\n"
-              "Este respaldo corresponde a la última ejecución realizada correctamente y se envía como "
-              "medida preventiva de seguridad y continuidad operativa.\n\n"
+              "Se adjunta el respaldo más reciente de la base de datos.\n\n"
+              "Este respaldo se genera de forma automática como medida preventiva "
+              "de seguridad y continuidad operativa.\n\n"
               "Saludos cordiales,\n"
               "Sistema de Respaldo Automatizado"
           )
