@@ -2,8 +2,8 @@ name: DB Backup (mysqldump + email)
 
 on:
   schedule:
-    # Lunes 14:00 Chile (UTC-3) = 17:00 UTC
-    - cron: "0 17 * * 1"
+    # Corre cada hora los lunes (UTC). Un guard asegura 14:00 en Chile (con DST).
+    - cron: "0 * * * 1"
   workflow_dispatch: {}
 
 jobs:
@@ -42,34 +42,57 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Guard: solo continuar si en Chile son exactamente las 14:00 (DST automático)
+      - name: Verificar hora Chile (14:00)
+        id: guard
+        shell: bash
+        run: |
+          export TZ=America/Santiago
+          echo "Ahora en Chile: $(date '+%Y-%m-%d %H:%M:%S %Z')"
+          DOW=$(date +%u)   # 1 = lunes
+          HOUR=$(date +%H)  # 00-23
+          if [ "$DOW" = "1" ] && [ "$HOUR" = "14" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "No es lunes 14:00 CL. Saliendo sin error."
+          fi
+
       - name: Set up Python
+        if: steps.guard.outputs.run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install system deps (mysql-client)
+        if: steps.guard.outputs.run == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y mysql-client
 
       - name: Install Python deps
+        if: steps.guard.outputs.run == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Prepare backup dir
+        if: steps.guard.outputs.run == 'true'
         run: mkdir -p "$BACKUP_DIR"
 
       - name: Debug email env (temporal)
+        if: steps.guard.outputs.run == 'true'
         run: |
           echo "FROM set? -> $([ -n "$EMAIL_HOST_USER" ] && echo yes || echo no)"
           echo "TO set?   -> $([ -n "$EMAIL_RECIPIENTS" ] && echo yes || echo no)"
           echo "SMTP set? -> $([ -n "$EMAIL_HOST" ] && echo yes || echo no):$([ -n "$EMAIL_PORT" ] && echo yes || echo no)"
 
       - name: Run Django backup command
+        if: steps.guard.outputs.run == 'true'
         run: python manage.py backup_db
 
       - name: Locate newest backup file
+        if: steps.guard.outputs.run == 'true'
         id: find_backup
         shell: bash
         run: |
@@ -82,45 +105,74 @@ jobs:
           echo "path=$BACKUP_DIR/$FILE" >> "$GITHUB_OUTPUT"
           echo "Found: $BACKUP_DIR/$FILE"
 
-      - name: Send backup by SMTP (attach)
-        # Envío directo sin depender de Django, para ver éxito/fallo en logs
+      - name: Enviar respaldo por correo (mensaje formal)
+        if: steps.guard.outputs.run == 'true'
+        env:
+          BACKUP_FILE: ${{ steps.find_backup.outputs.path }}
         run: |
           python - <<'PY'
-          import os, ssl, smtplib, mimetypes
+          import os, ssl, smtplib, mimetypes, datetime
           from email.message import EmailMessage
+
           path = os.environ["BACKUP_FILE"]
           sender = os.environ["EMAIL_HOST_USER"]
           recipients = [r.strip() for r in os.environ["EMAIL_RECIPIENTS"].split(",") if r.strip()]
           if not recipients:
             raise SystemExit("ERROR: EMAIL_RECIPIENTS vacío")
 
+          host = os.environ["EMAIL_HOST"]
+          port = int(os.environ["EMAIL_PORT"])
+
+          # Fecha/hora local (texto informativo)
+          now_cl = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+          # Asunto y cuerpo formales
+          subject = f"Respaldo automático de base de datos – {now_cl}"
+          body = f"""Estimado/a,
+
+Por medio del presente, se informa que el procedimiento de respaldo automático de la base de datos se ha ejecutado satisfactoriamente.
+
+• Fecha y hora (Chile): {now_cl}
+• Archivo generado: {os.path.basename(path)}
+
+Se adjunta el archivo de respaldo para su custodia y control. 
+Ante cualquier observación o eventualidad, agradeceremos su notificación para la revisión correspondiente.
+
+Atentamente,
+Sistema de Respaldo – GitHub Actions
+"""
+
           msg = EmailMessage()
-          msg["Subject"] = f"Backup automático - {os.path.basename(path)}"
+          msg["Subject"] = subject
           msg["From"] = sender
           msg["To"] = ", ".join(recipients)
-          msg.set_content("Adjunto el backup generado por GitHub Actions.")
+          msg.set_content(body)
 
           ctype, _ = mimetypes.guess_type(path)
           if ctype is None:
             ctype = "application/octet-stream"
+          maintype, subtype = ctype.split("/", 1)
           with open(path, "rb") as f:
-            msg.add_attachment(f.read(), maintype=ctype.split("/")[0], subtype=ctype.split("/")[1], filename=os.path.basename(path))
+            msg.add_attachment(
+              f.read(),
+              maintype=maintype,
+              subtype=subtype,
+              filename=os.path.basename(path)
+            )
 
           ctx = ssl.create_default_context()
-          with smtplib.SMTP_SSL(os.environ["EMAIL_HOST"], int(os.environ["EMAIL_PORT"]), context=ctx) as s:
+          with smtplib.SMTP_SSL(host, port, context=ctx, timeout=30) as s:
             s.login(os.environ["EMAIL_HOST_USER"], os.environ["EMAIL_HOST_PASSWORD"])
             resp = s.send_message(msg)
-          # send_message devuelve dict de errores; vacío == OK
           if resp:
             raise SystemExit(f"ERROR: SMTP no entregó a: {resp}")
           print(f"SMTP OK: enviado a {recipients} con adjunto {os.path.basename(path)}")
           PY
-        env:
-          BACKUP_FILE: ${{ steps.find_backup.outputs.path }}
 
       - name: Upload artifact (copia de seguridad)
+        if: steps.guard.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: mysql-backup
           path: ${{ env.BACKUP_DIR }}/*
-          if-no-files-found: ignore 
+          if-no-files-found: ignore
