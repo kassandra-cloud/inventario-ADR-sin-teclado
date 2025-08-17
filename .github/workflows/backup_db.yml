@@ -1,54 +1,13 @@
 name: DB Backup (mysqldump + email)
 
 on:
-  # Corre cada hora los lunes (UTC); el gate decide si continuar a las 14:00 CL
   schedule:
-    - cron: "0 * * * 1"
-  # Permite correr manualmente; 'force' salta el gate para pruebas
-  workflow_dispatch:
-    inputs:
-      force:
-        description: "Forzar ejecución ahora (ignora 14:00 CL)"
-        type: boolean
-        default: false
-
-permissions:
-  contents: read
+    # Lunes 14:00 Chile (UTC-3) = 17:00 UTC
+    - cron: "0 17 * * 1"
+  workflow_dispatch: {}
 
 jobs:
-  gate:
-    name: Gate horario Chile
-    runs-on: ubuntu-latest
-    outputs:
-      run: ${{ steps.check.outputs.run }}
-    steps:
-      - name: Verificar si es lunes 14:00 CL (o forzado)
-        id: check
-        shell: bash
-        run: |
-          FORCE="${{ github.event.inputs.force }}"
-          if [ "$FORCE" = "true" ]; then
-            echo "Forzado por workflow_dispatch.inputs.force=true"
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          export TZ=America/Santiago
-          echo "Ahora en Chile: $(date '+%Y-%m-%d %H:%M:%S %Z')"
-          DOW=$(date +%u)   # 1 = lunes
-          HOUR=$(date +%H)  # 00-23
-          if [ "$DOW" = "1" ] && [ "$HOUR" = "14" ]; then
-            echo "Es lunes 14:00 CL -> ejecutar backup"
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "No es lunes 14:00 CL -> no ejecutar"
-            echo "run=false" >> "$GITHUB_OUTPUT"
-          fi
-
   backup:
-    name: Backup + Email
-    needs: gate
-    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
 
     env:
@@ -68,12 +27,12 @@ jobs:
 
       # Email
       EMAIL_HOST: ${{ secrets.EMAIL_HOST }}           # p.ej. smtp.gmail.com
-      EMAIL_PORT: ${{ secrets.EMAIL_PORT }}           # 465 SSL o 587 STARTTLS
+      EMAIL_PORT: ${{ secrets.EMAIL_PORT }}           # 465 si usas SSL
       EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }} # remitente
       EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
       EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}  # separados por coma
 
-      # mysqldump (si tu management command las usa)
+      # Credenciales para mysqldump si tu comando las usa por ENV
       MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
       MYSQL_USER: ${{ secrets.MYSQL_USER }}
       MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
@@ -101,6 +60,12 @@ jobs:
       - name: Prepare backup dir
         run: mkdir -p "$BACKUP_DIR"
 
+      - name: Debug email env (temporal)
+        run: |
+          echo "FROM set? -> $([ -n "$EMAIL_HOST_USER" ] && echo yes || echo no)"
+          echo "TO set?   -> $([ -n "$EMAIL_RECIPIENTS" ] && echo yes || echo no)"
+          echo "SMTP set? -> $([ -n "$EMAIL_HOST" ] && echo yes || echo no):$([ -n "$EMAIL_PORT" ] && echo yes || echo no)"
+
       - name: Run Django backup command
         run: python manage.py backup_db
 
@@ -117,76 +82,59 @@ jobs:
           echo "path=$BACKUP_DIR/$FILE" >> "$GITHUB_OUTPUT"
           echo "Found: $BACKUP_DIR/$FILE"
 
-      - name: Enviar respaldo por correo (mensaje formal)
-        env:
-          BACKUP_FILE: ${{ steps.find_backup.outputs.path }}
+      - name: Send backup by SMTP (attach)
         run: |
           python - <<'PY'
-          import os, ssl, smtplib, mimetypes, datetime
+          import os, ssl, smtplib, mimetypes
           from email.message import EmailMessage
 
           path = os.environ["BACKUP_FILE"]
           sender = os.environ["EMAIL_HOST_USER"]
           recipients = [r.strip() for r in os.environ["EMAIL_RECIPIENTS"].split(",") if r.strip()]
           if not recipients:
-            raise SystemExit("ERROR: EMAIL_RECIPIENTS vacío")
-
-          host = os.environ["EMAIL_HOST"]
-          port = int(os.environ["EMAIL_PORT"])
-
-          # Timestamp local (informativo)
-          now_cl = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-          subject = f"Respaldo automático de base de datos – {now_cl}"
-          body = f"""Estimado/a,
-
-Por medio del presente, se informa que el procedimiento de respaldo automático de la base de datos se ha ejecutado satisfactoriamente.
-
-• Fecha y hora (Chile): {now_cl}
-• Archivo generado: {os.path.basename(path)}
-
-Se adjunta el archivo de respaldo para su custodia y control.
-Ante cualquier observación o eventualidad, agradeceremos su notificación para la revisión correspondiente.
-
-Atentamente,
-Sistema de Respaldo – GitHub Actions
-"""
+              raise SystemExit("ERROR: EMAIL_RECIPIENTS vacío")
 
           msg = EmailMessage()
-          msg["Subject"] = subject
+          msg["Subject"] = f"Respaldo automático de base de datos - {os.path.basename(path)}"
           msg["From"] = sender
           msg["To"] = ", ".join(recipients)
-          msg.set_content(body)
+          msg.set_content(
+              "Estimado/a,\n\n"
+              "Se adjunta el respaldo automático de la base de datos generado por el flujo de trabajo "
+              "programado en GitHub Actions.\n\n"
+              "Este respaldo corresponde a la última ejecución realizada correctamente y se envía como "
+              "medida preventiva de seguridad y continuidad operativa.\n\n"
+              "Saludos cordiales,\n"
+              "Sistema de Respaldo Automatizado"
+          )
 
           ctype, _ = mimetypes.guess_type(path)
           if ctype is None:
-            ctype = "application/octet-stream"
-          maintype, subtype = ctype.split("/", 1)
+              ctype = "application/octet-stream"
           with open(path, "rb") as f:
-            msg.add_attachment(f.read(), maintype=maintype, subtype=subtype, filename=os.path.basename(path))
+              maintype, subtype = ctype.split("/", 1)
+              msg.add_attachment(
+                  f.read(),
+                  maintype=maintype,
+                  subtype=subtype,
+                  filename=os.path.basename(path)
+              )
 
-          # Intentar SSL y si falla, STARTTLS
           ctx = ssl.create_default_context()
-          try:
-            with smtplib.SMTP_SSL(host, port, context=ctx, timeout=30) as s:
+          with smtplib.SMTP_SSL(os.environ["EMAIL_HOST"], int(os.environ["EMAIL_PORT"]), context=ctx) as s:
               s.login(os.environ["EMAIL_HOST_USER"], os.environ["EMAIL_HOST_PASSWORD"])
               resp = s.send_message(msg)
-              mode = "SSL"
-          except Exception:
-            with smtplib.SMTP(host, port, timeout=30) as s:
-              s.ehlo(); s.starttls(context=ctx); s.ehlo()
-              s.login(os.environ["EMAIL_HOST_USER"], os.environ["EMAIL_HOST_PASSWORD"])
-              resp = s.send_message(msg)
-              mode = "STARTTLS"
 
           if resp:
-            raise SystemExit(f"ERROR: SMTP no entregó a: {resp}")
-          print(f"SMTP OK ({mode}): enviado a {recipients} con adjunto {os.path.basename(path)}")
+              raise SystemExit(f"ERROR: SMTP no entregó a: {resp}")
+          print(f"SMTP OK: enviado a {recipients} con adjunto {os.path.basename(path)}")
           PY
+        env:
+          BACKUP_FILE: ${{ steps.find_backup.outputs.path }}
 
       - name: Upload artifact (copia de seguridad)
         uses: actions/upload-artifact@v4
         with:
           name: mysql-backup
           path: ${{ env.BACKUP_DIR }}/*
-          if-no-files-found: error
+          if-no-files-found: ignore
