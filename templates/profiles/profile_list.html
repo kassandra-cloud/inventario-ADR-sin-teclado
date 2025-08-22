@@ -2,11 +2,19 @@
 {% load static %}
 
 {% block title %}Listado de Perfiles{% endblock %}
-{% block sidebar %}<div class="contents">{% include 'componentes/sidebar.html' %}</div>{% endblock %}
+
+{# Sidebar como siempre #}
+{% block sidebar %}
+  <div class="contents">{% include 'componentes/sidebar.html' %}</div>
+{% endblock %}
 
 {% block content %}
-<div id="content" class="w-full max-w-screen-2xl mx-auto px-4 py-6 md:ml-72">
-  <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-4">Listado de Perfiles</h1>
+
+<div id="content" class="w-full max-w-screen-2xl mx-auto px-4 py-6 md:pl-72">
+
+  <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+    Listado de Perfiles
+  </h1>
 
   <div class="grid grid-cols-1 gap-3 md:grid-cols-3 items-start mb-6">
     <form method="get" class="col-span-1 md:col-span-2 grid grid-cols-1 gap-3">
@@ -36,7 +44,7 @@
 
   {% if profiles_with_singular_groups %}
 
-  {# --------- MÓVIL: CARDS --------- #}
+  {# --------- MÓVIL/TABLET (< md): CARDS --------- #}
   <div class="space-y-3 md:hidden">
     {% for p in profiles_with_singular_groups %}
       <div class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
@@ -47,7 +55,7 @@
           {% elif 'Usuario' in p.singular_groups %} from-zinc-900 to-zinc-950 text-neutral-100
           {% else %} from-gray-500 to-gray-900 text-white
           {% endif %}">
-          
+
           {% if p.profile.image and p.profile.image.name %}
             <img src="{{ p.profile.image.url }}" alt="{{ p.profile.user.username }}"
                  class="w-9 h-9 rounded-full object-cover ring-2 ring-white/40"
@@ -79,24 +87,27 @@
     {% endfor %}
   </div>
 
-  {# --------- ESCRITORIO: TABLA --------- #}
+  {# --------- ESCRITORIO / NOTEBOOK (>= md): TABLA --------- #}
   <div class="hidden md:block">
     <div class="relative overflow-x-auto rounded shadow ring-1 ring-black/5">
-      <table class="min-w-[1000px] w-full table-fixed bg-white">
-        <thead class="bg-red-600 text-white text-sm sticky top-0 z-0">
+      <table class="w-full bg-white table-fixed min-w-[840px] lg:min-w-[1000px] xl:min-w-full">
+        <thead class="bg-red-600 text-white text-xs md:text-sm sticky top-0 z-10">
           <tr>
-            <th class="px-2 py-2 text-center w-16">Imagen</th>
+            {# Imagen: sólo desde lg #}
+            <th class="px-2 py-2 text-center w-14 hidden lg:table-cell">Imagen</th>
             <th class="px-2 py-2 text-left w-40">Usuario</th>
-            <th class="px-2 py-2 text-left w-56">Nombre</th>
-            <th class="px-2 py-2 text-left w-56">Apellidos</th>
+            <th class="px-2 py-2 text-left w-48">Nombre</th>
+            {# Apellidos: sólo desde xl #}
+            <th class="px-2 py-2 text-left w-48 hidden xl:table-cell">Apellidos</th>
             <th class="px-2 py-2 text-left w-64">Email</th>
             <th class="px-2 py-2 text-left">Grupo</th>
             {% if group_name_singular == 'ADR' or group_name_singular == 'Operador ADR' %}
-              <th class="px-2 py-2 text-center w-28">Modificar</th>
+              <th class="px-2 py-2 text-center w-24">Modificar</th>
             {% endif %}
           </tr>
         </thead>
-        <tbody class="text-sm">
+
+        <tbody class="text-xs md:text-sm">
           {% for r in profiles_with_singular_groups %}
           <tr class="border-b border-neutral-100
             {% if 'Usuario' in r.singular_groups %} bg-zinc-950 text-neutral-100
@@ -105,25 +116,51 @@
             {% elif 'Auxiliar Operador ADR' in r.singular_groups %} bg-gradient-to-tr from-red-500 to-fuchsia-900 text-white
             {% elif 'Alumno en Práctica' in r.singular_groups %} bg-gradient-to-tr from-gray-500 to-gray-900 text-white
             {% endif %}">
-            <td class="px-2 py-1 text-center">
+            
+            {# Imagen: sólo desde lg #}
+            <td class="px-2 py-1 text-center hidden lg:table-cell">
               {% if r.profile.image and r.profile.image.name %}
                 <img src="{{ r.profile.image.url }}" alt="{{ r.profile.user.username }}"
-                     class="w-10 h-10 object-cover rounded-full mx-auto ring-2 ring-white/40"
+                     class="w-9 h-9 object-cover rounded-full mx-auto ring-2 ring-white/40"
                      onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'>
               {% else %}
                 <img src="{% get_media_prefix %}default.png" alt="{{ r.profile.user.username }}"
-                     class="w-10 h-10 object-cover rounded-full mx-auto ring-2 ring-white/40">
+                     class="w-9 h-9 object-cover rounded-full mx-auto ring-2 ring-white/40">
               {% endif %}
             </td>
-            <td class="px-2 py-1 text-left">{{ r.profile.user.username|capfirst }}</td>
-            <td class="px-2 py-1 text-left">{{ r.profile.user.first_name|capfirst }}</td>
-            <td class="px-2 py-1 text-left">{{ r.profile.user.last_name|capfirst }}</td>
-            <td class="px-2 py-1 text-left">{{ r.profile.user.email }}</td>
-            <td class="px-2 py-1 text-left">{{ r.singular_groups|join:", " }}</td>
+
+            <td class="px-2 py-1 text-left truncate" title="{{ r.profile.user.username|capfirst }}">
+              {{ r.profile.user.username|capfirst }}
+            </td>
+
+            <td class="px-2 py-1 text-left truncate" title="{{ r.profile.user.first_name|capfirst }}">
+              {{ r.profile.user.first_name|capfirst }}
+            </td>
+
+            {# Apellidos: sólo desde xl #}
+            <td class="px-2 py-1 text-left truncate hidden xl:table-cell"
+                title="{{ r.profile.user.last_name|capfirst }}">
+              {{ r.profile.user.last_name|capfirst }}
+            </td>
+
+            <td class="px-2 py-1 text-left whitespace-normal break-words">
+              <span class="block max-w-[22ch] md:max-w-[28ch] lg:max-w-[36ch] xl:max-w-none truncate"
+                    title="{{ r.profile.user.email }}">
+                {{ r.profile.user.email }}
+              </span>
+            </td>
+
+            <td class="px-2 py-1 text-left whitespace-normal break-words">
+              <span class="block max-w-[24ch] md:max-w-[32ch] lg:max-w-[40ch] xl:max-w-none truncate"
+                    title="{{ r.singular_groups|join:', ' }}">
+                {{ r.singular_groups|join:", " }}
+              </span>
+            </td>
+
             {% if group_name_singular == 'ADR' or group_name_singular == 'Operador ADR' %}
             <td class="px-2 py-1 text-center">
               <a href="{% url 'profile_edit' r.profile.user.pk %}"
-                 class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white bg-gradient-to-br from-gray-600 to-gray-900 hover:from-gray-500 hover:to-gray-800 shadow-md">
+                 class="inline-flex items-center gap-1 px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-medium text-white bg-gradient-to-br from-gray-600 to-gray-900 hover:from-gray-500 hover:to-gray-800 shadow-md">
                 Editar
               </a>
             </td>

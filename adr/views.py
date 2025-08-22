@@ -82,36 +82,50 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import PasswordChangeView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
-from .forms import LoginForm 
+from .forms import LoginForm,UserUpdateForm
 
 
 #logica para que el usuario pueda editar su foto
 @login_required
 def my_profile(request):
     user = request.user
-    profile = user.profile  # OneToOne con User
+    profile = user.profile
+
+    # Instancias por defecto (GET o si hay errores)
+    uform = UserUpdateForm(instance=user)
+    pform = ProfileImageForm(instance=profile)
 
     if request.method == "POST":
-        form = ProfileImageForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Tu foto de perfil fue actualizada.")
-            return redirect("my_profile")
-        else:
-            messages.error(request, "No se pudo actualizar la foto. Revisa el archivo.")
-    else:
-        form = ProfileImageForm(instance=profile)
+        # ¿Cuál botón se apretó?
+        if "save_user" in request.POST:
+            uform = UserUpdateForm(request.POST, instance=user)
+            if uform.is_valid():
+                uform.save()
+                messages.success(request, "Datos actualizados correctamente.")
+                return redirect("my_profile")
+            else:
+                messages.error(request, "Revisa los campos del formulario.")
 
-    # Para que el navbar pinte según el grupo
-    group = user.groups.first().name if user.groups.exists() else "Usuario"
+        elif "save_photo" in request.POST:
+            pform = ProfileImageForm(request.POST, request.FILES, instance=profile)
+            if pform.is_valid():
+                pform.save()
+                messages.success(request, "Tu foto de perfil fue actualizada.")
+                return redirect("my_profile")
+            else:
+                messages.error(request, "No se pudo actualizar la foto. Revisa el archivo.")
+
+    # Para el navbar por grupo (tu código actual)
+    group = request.user.groups.first().name if request.user.groups.exists() else "Invitado"
 
     return render(
         request,
         "profiles/my_profile.html",
         {
-            "form": form,                    # <- usa siempre 'form'
+            "user_form": uform,          # <- NUEVO
+            "photo_form": pform,         # <- renombrado para claridad
             "user_profile": user,
-            "group_name_singular": group,    # <- para el navbar por rango
+            "group_name_singular": group,
         },
     )
 from io import BytesIO

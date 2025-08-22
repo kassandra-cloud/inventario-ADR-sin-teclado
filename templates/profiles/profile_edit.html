@@ -12,7 +12,7 @@
   <div class="container mx-auto px-4 lg:ml-64">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start pt-6 lg:pt-12">
 
-      {# -------- Foto en desktop (con preview) -------- #}
+      {# -------- Foto en desktop (preview) -------- #}
       <aside class="hidden lg:flex justify-center self-start">
         <div class="w-full max-w-sm">
           <div class="rounded-xl overflow-hidden shadow-lg">
@@ -22,16 +22,17 @@
                    src="{{ user_profile.profile.image.url }}"
                    data-original-src="{{ user_profile.profile.image.url }}"
                    alt="Foto de perfil"
-                   onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'>
+                   onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'/>
             {% else %}
               <img id="profilePreviewDesk"
                    class="w-full object-cover max-h-[500px]"
                    src="{% get_media_prefix %}default.png"
                    data-original-src="{% get_media_prefix %}default.png"
-                   alt="Foto por defecto">
+                   alt="Foto por defecto"/>
             {% endif %}
           </div>
 
+          {# Botón eliminar SOLO escritorio #}
           <form method="post" action="{% url 'profile_edit' user_profile.pk %}" class="mt-4">
             {% csrf_token %}
             <button type="submit" name="delete_image" value="1"
@@ -43,11 +44,11 @@
         </div>
       </aside>
 
-      {# -------- Formulario (con dropzone y avatar móvil) -------- #}
+      {# -------------------- Formulario -------------------- #}
       <section class="lg:col-span-2 self-start">
         <div class="bg-gradient-to-br from-white via-gray-100 to-gray-200 rounded-2xl shadow-xl p-6 sm:p-8">
 
-          {# Avatar circular en móvil/tablet con botón "Cambiar" #}
+          {# Avatar circular en móvil/tablet con botón Cambiar #}
           <div class="flex items-center gap-4 sm:gap-6 lg:hidden mb-4">
             <div class="relative group shrink-0">
               {% if user_profile.profile.image and user_profile.profile.image.name %}
@@ -56,26 +57,38 @@
                      data-original-src="{{ user_profile.profile.image.url }}"
                      class="w-24 h-24 rounded-full object-cover ring-2 ring-white/70 shadow"
                      alt="Foto de perfil"
-                     onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'>
+                     onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'/>
               {% else %}
                 <img id="profilePreviewMobile"
                      src="{% get_media_prefix %}default.png"
                      data-original-src="{% get_media_prefix %}default.png"
                      class="w-24 h-24 rounded-full object-cover ring-2 ring-white/70 shadow"
-                     alt="Foto por defecto">
+                     alt="Foto por defecto"/>
               {% endif %}
               <button type="button" id="avatarPickMobile"
                       class="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/35 transition grid place-items-center text-white text-xs opacity-0 group-hover:opacity-100">
                 Cambiar
               </button>
             </div>
+
             <div class="flex-1">
               <h2 class="text-xl sm:text-2xl font-semibold text-gray-900">Editar Usuario</h2>
-              <p class="text-xs text-gray-500">Actualiza tus datos y tu foto.</p>
+              <p class="text-xs text-gray-500">Actualiza los datos y la foto.</p>
+
+              {# >>> Botón eliminar visible en tablet/móvil <<< #}
+              <form method="post" action="{% url 'profile_edit' user_profile.pk %}" class="mt-3">
+                {% csrf_token %}
+                <button type="submit" name="delete_image" value="1"
+                        class="w-full sm:w-auto inline-flex items-center justify-center bg-red-700 hover:bg-red-800 text-white text-sm font-medium py-2 px-4 rounded-lg shadow transition"
+                        onclick="return confirm('¿Eliminar la foto de perfil y restaurar la imagen por defecto?');">
+                  Eliminar foto
+                </button>
+              </form>
+              {# ---------------------------------------------- #}
             </div>
           </div>
 
-          {# Título en desktop #}
+          {# Título desktop #}
           <div class="hidden lg:flex items-start justify-between mb-6">
             <h2 class="text-2xl font-semibold text-gray-900">Editar Usuario</h2>
             <form action="{% url 'profile_delete' user_profile.pk %}" method="post">
@@ -92,20 +105,21 @@
           <form action="{% url 'profile_edit' user_profile.pk %}" method="post" enctype="multipart/form-data" id="editForm" onsubmit="return validateEditForm()">
             {% csrf_token %}
 
-            {# Dropzone para imagen (misma UX que 'Mi Perfil') #}
+            {# Dropzone + input file hidden #}
             <div class="mb-4">
               <div class="mb-2 text-zinc-700 text-sm font-medium">Foto de Perfil</div>
-              <label for="id_image"
-                     id="dropzone"
-                     class="group flex flex-col items-center justify-center w-full h-28 md:h-32 rounded-xl border border-dashed border-zinc-400 bg-white/70 hover:bg-white transition cursor-pointer px-4 text-center">
+
+              <div id="dropzone" role="button" tabindex="0"
+                   class="group flex flex-col items-center justify-center w-full h-28 md:h-32 rounded-xl border border-dashed border-zinc-400 bg-white/70 hover:bg-white transition cursor-pointer px-4 text-center">
                 <div class="text-sm text-zinc-600">
                   Arrastra una imagen aquí o <span class="underline font-semibold">haz clic para seleccionar</span>
                 </div>
                 <div class="mt-1 text-xs text-zinc-500">
                   Formatos: JPG/PNG • Recomendado ≥ 512×512 • Máx. 2 MB
                 </div>
-                <input type="file" id="id_image" name="image" accept="image/*" class="hidden">
-              </label>
+              </div>
+
+              <input type="file" id="id_image" name="image" accept="image/*" class="hidden">
               <div id="fileName" class="mt-2 text-xs text-zinc-600 truncate"></div>
               <div class="mt-2">
                 <button type="button" id="clearBtn"
@@ -115,7 +129,7 @@
               </div>
             </div>
 
-            {# Campos de usuario #}
+            {# Campos usuario #}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label for="username" class="block text-sm font-medium text-gray-800">Username</label>
@@ -195,7 +209,12 @@
           {% if messages %}
             <div class="mt-4 space-y-3" aria-live="polite">
               {% for message in messages %}
-                <div class="p-3 sm:p-4 bg-red-100 border border-red-300 text-red-800 rounded">
+                <div class="p-3 sm:p-4 rounded
+                            {% if message.tags == 'success' %}
+                              bg-green-100 border border-green-300 text-green-800
+                            {% else %}
+                              bg-red-100 border border-red-300 text-red-800
+                            {% endif %}">
                   {{ message }}
                 </div>
               {% endfor %}
@@ -207,7 +226,7 @@
   </div>
 </div>
 
-{# -------- Modal de recorte con Cropper.js (mismo que Mi Perfil) -------- #}
+{# -------- Modal de recorte con Cropper.js -------- #}
 <div id="cropperModal"
      class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[200]">
   <div class="bg-white rounded-xl p-4 w-[92vw] max-w-[680px]">
@@ -236,24 +255,22 @@
 
 <script>
 function validateEditForm() {
-  let isValid = true;
+  let ok = true;
   const p1 = document.getElementById('new_password1');
   const p2 = document.getElementById('new_password2');
-  if (p1.value && p1.value.length < 12) {
-    document.getElementById('password1-error').classList.remove('hidden'); isValid = false;
-  } else {
-    document.getElementById('password1-error').classList.add('hidden');
-  }
+  if (p1.value && p1.value.length < 12) { document.getElementById('password1-error').classList.remove('hidden'); ok = false; }
+  else { document.getElementById('password1-error').classList.add('hidden'); }
   if (p1.value || p2.value) {
-    if (p1.value !== p2.value) { document.getElementById('password2-error').classList.remove('hidden'); isValid = false; }
+    if (p1.value !== p2.value) { document.getElementById('password2-error').classList.remove('hidden'); ok = false; }
     else { document.getElementById('password2-error').classList.add('hidden'); }
   } else { document.getElementById('password2-error').classList.add('hidden'); }
-  return isValid;
+  return ok;
 }
 
 (function () {
-  const input = document.getElementById('id_image');
-  const drop  = document.getElementById('dropzone');
+  const input  = document.getElementById('id_image');
+  const drop   = document.getElementById('dropzone');
+  const pick   = document.getElementById('avatarPickMobile');
 
   const previewMobile = document.getElementById('profilePreviewMobile');
   const previewDesk   = document.getElementById('profilePreviewDesk');
@@ -262,7 +279,6 @@ function validateEditForm() {
 
   const fileName = document.getElementById('fileName');
   const clearBtn = document.getElementById('clearBtn');
-  const avatarPickMobile = document.getElementById('avatarPickMobile');
 
   const modal = document.getElementById('cropperModal');
   const img   = document.getElementById('cropperImage');
@@ -270,35 +286,42 @@ function validateEditForm() {
   const cancelBtn = document.getElementById('cancelCrop');
   const previewCircle = document.getElementById('previewCircle');
 
-  let cropper = null;
-  let objectURL = null;
+  let cropper = null, objectURL = null, opening = false;
 
-  if (avatarPickMobile) avatarPickMobile.addEventListener('click', () => input.click());
-  drop.addEventListener('click', () => input.click());
+  function openPicker() {
+    if (opening) return;
+    opening = true;
+    input.value = '';                    // <- permite seleccionar el mismo archivo
+    input.click();
+    setTimeout(() => opening = false, 250);
+  }
 
+  if (pick) pick.addEventListener('click', openPicker);
+  drop.addEventListener('click', openPicker);
+  drop.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(); }
+  });
+
+  // Drag & drop
   ['dragenter','dragover'].forEach(ev =>
     drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('ring-2','ring-red-800/40'); })
   );
   ['dragleave','drop'].forEach(ev =>
     drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('ring-2','ring-red-800/40'); })
   );
-
   drop.addEventListener('drop', e => {
     const f = e.dataTransfer.files && e.dataTransfer.files[0];
     if (f) openCropper(f);
   });
+
   input.addEventListener('change', () => {
     const f = input.files && input.files[0];
     if (f) openCropper(f);
   });
 
   function openCropper(file) {
-    if (file.size > 2 * 1024 * 1024) {
-      alert("Tamaño máximo permitido: 2 MB."); input.value = ''; return;
-    }
-    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
-      alert("Formato no permitido. Usa JPG o PNG."); input.value = ''; return;
-    }
+    if (file.size > 2 * 1024 * 1024) { alert("Tamaño máximo permitido: 2 MB."); input.value = ''; return; }
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { alert("Formato no permitido. Usa JPG o PNG."); input.value = ''; return; }
 
     if (objectURL) URL.revokeObjectURL(objectURL);
     objectURL = URL.createObjectURL(file);
@@ -315,9 +338,10 @@ function validateEditForm() {
         viewMode: 1,
         dragMode: 'move',
         autoCropArea: 1,
-        preview: previewCircle,
+        preview: previewCircle
       });
     };
+
     modal.classList.remove('hidden'); modal.classList.add('flex');
   }
 
@@ -339,6 +363,7 @@ function validateEditForm() {
         const previewURL = URL.createObjectURL(blob);
         if (previewMobile) previewMobile.src = previewURL;
         if (previewDesk)   previewDesk.src   = previewURL;
+
         fileName.textContent = file.name;
         clearBtn.classList.remove('hidden');
         closeCropper();

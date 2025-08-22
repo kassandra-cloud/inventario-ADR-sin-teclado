@@ -30,7 +30,7 @@
   {# ---------- Contenido del navbar ---------- #}
   <div class="max-w-screen-2xl mx-auto px-2 sm:px-3 h-full flex items-center justify-between">
 
-    {# Izquierda: hamburguesa + marca (corta en móvil) #}
+    {# Izquierda: hamburguesa + icono + título #}
     <div class="flex items-center gap-2">
       <button id="hamburgerButton"
               class="w-10 h-10 grid place-items-center rounded-md/2 focus:outline-none focus:ring-2 focus:ring-white/40">
@@ -40,16 +40,19 @@
         </svg>
       </button>
 
-      <h1 class="font-semibold leading-none truncate
-                 text-sm sm:text-base max-w-[44vw] sm:max-w-[320px]">
-        GESTIÓN INVENTARIO ADR
+      <!-- Icono Inacap -->
+      <img src="{% static 'imagenes/favicon.ico' %}" 
+           alt="Logo Inacap"
+           class="w-7 h-7 object-contain"/>
+
+      <!-- Título -->
+      <h1 class="font-semibold leading-none truncate text-sm sm:text-base text-white max-w-[44vw] sm:max-w-[320px]">
+        PLATAFORMA DE INVENTARIO ADR
       </h1>
     </div>
 
     {# Derecha: info usuario + avatar + acciones #}
     <div class="flex items-center gap-2 sm:gap-3">
-
-      {# Texto largo solo en md+ para evitar desbordes en móvil #}
       {% if user.is_authenticated %}
       <span class="hidden md:block text-sm italic truncate max-w-[32vw]">
         Usuario en línea: {{ user.first_name|capfirst }} {{ user.last_name|capfirst }} | {{ group_name_singular }}
@@ -72,13 +75,11 @@
       </a>
 
       {% if user.is_authenticated %}
-        {# "Mi perfil" solo en md+; en móvil ya está el avatar clickeable #}
         <a href="{% url 'my_profile' %}"
            class="hidden md:inline-block text-xs md:text-sm font-semibold px-2 py-1 rounded hover:underline">
           Mi perfil
         </a>
 
-        {# Botón salir: como icono en móvil, como botón en md+ #}
         <form method="POST" action="{% url 'logout' %}" class="m-0 p-0">
           {% csrf_token %}
           <button type="submit"

@@ -8,7 +8,7 @@
   <div class="ml-64 mx-auto">
     <div class="flex flex-col md:flex-row">
 
-      {# -------------------- Photo card SOLO desktop -------------------- #}
+      {# -------------------- Tarjeta de foto SOLO escritorio -------------------- #}
       <div class="hidden md:flex flex-shrink-0 md:w-1/4 items-start justify-center p-4 mt-32">
         {% if user_profile.profile.image and user_profile.profile.image.name %}
           <img id="profilePreviewDesk"
@@ -26,46 +26,10 @@
         {% endif %}
       </div>
 
-      {# -------------------- Panel derecho: datos + formulario foto -------------------- #}
+      {# -------------------- Panel derecho: datos + foto -------------------- #}
       <div class="flex-1 p-4 md:p-8 bg-gradient-to-r from-white to-gray-300 rounded-xl shadow-2xl relative mt-24 md:mt-32">
 
-        {# Encabezado móvil DENTRO del panel #}
-        <div class="md:hidden mb-6">
-          <div class="flex items-center gap-4">
-            <div class="relative group shrink-0">
-              {% if user_profile.profile.image and user_profile.profile.image.name %}
-                <img id="profilePreviewMobile"
-                     src="{{ user_profile.profile.image.url }}"
-                     data-original-src="{{ user_profile.profile.image.url }}"
-                     class="w-24 h-24 rounded-full object-cover ring-2 ring-white/70 shadow"
-                     alt="Foto de perfil"
-                     onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'>
-              {% else %}
-                <img id="profilePreviewMobile"
-                     src="{% get_media_prefix %}default.png"
-                     data-original-src="{% get_media_prefix %}default.png"
-                     class="w-24 h-24 rounded-full object-cover ring-2 ring-white/70 shadow"
-                     alt="Foto por defecto">
-              {% endif %}
-              <button type="button" id="avatarPickMobile"
-                      class="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/35 transition grid place-items-center text-white text-xs opacity-0 group-hover:opacity-100">
-                Cambiar
-              </button>
-            </div>
-            <div>
-              <h2 class="text-zinc-800 text-2xl font-semibold">Mi perfil</h2>
-              <p class="text-zinc-600 text-sm">Gestiona tu información y tu foto.</p>
-            </div>
-          </div>
-
-          <a href="{% url 'password_change' %}"
-             class="mt-4 inline-flex items-center justify-center w-full h-10 px-4 rounded-lg bg-red-900 text-white hover:bg-red-800 transition shadow">
-            Cambiar contraseña
-          </a>
-        </div>
-
-        {# Header desktop con botón cambiar contraseña #}
-        <div class="hidden md:flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-6">
           <h2 class="text-zinc-800 text-2xl font-semibold">Mi perfil</h2>
           <a href="{% url 'password_change' %}"
              class="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-red-900 text-white hover:bg-red-800 transition shadow">
@@ -73,67 +37,81 @@
           </a>
         </div>
 
-        {# Datos en solo lectura #}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-          <div>
-            <label class="block text-zinc-700 text-sm font-medium mb-1">Nombre de usuario</label>
-            <input type="text" value="{{ user_profile.username }}" readonly
-                   class="w-full h-10 rounded-lg border border-zinc-300 bg-zinc-100 text-zinc-700 px-3 shadow-sm cursor-not-allowed">
-          </div>
-          <div>
-            <label class="block text-zinc-700 text-sm font-medium mb-1">Correo</label>
-            <input type="email" value="{{ user_profile.email }}" readonly
-                   class="w-full h-10 rounded-lg border border-zinc-300 bg-zinc-100 text-zinc-700 px-3 shadow-sm cursor-not-allowed">
-          </div>
-          <div>
-            <label class="block text-zinc-700 text-sm font-medium mb-1">Nombre</label>
-            <input type="text" value="{{ user_profile.first_name }}" readonly
-                   class="w-full h-10 rounded-lg border border-zinc-300 bg-zinc-100 text-zinc-700 px-3 shadow-sm cursor-not-allowed">
-          </div>
-          <div>
-            <label class="block text-zinc-700 text-sm font-medium mb-1">Apellidos</label>
-            <input type="text" value="{{ user_profile.last_name }}" readonly
-                   class="w-full h-10 rounded-lg border border-zinc-300 bg-zinc-100 text-zinc-700 px-3 shadow-sm cursor-not-allowed">
-          </div>
-        </div>
+        {# --------- Formulario de DATOS --------- #}
+        <form action="{% url 'my_profile' %}" method="post" class="space-y-6" novalidate>
+          {% csrf_token %}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {# Formulario SOLO para foto #}
+            <div>
+              <label class="block text-zinc-700 text-sm font-medium mb-1">Nombre de usuario</label>
+              {{ user_form.username }}
+            </div>
+
+            <div>
+              <label class="block text-zinc-700 text-sm font-medium mb-1">Correo</label>
+              {{ user_form.email }}
+            </div>
+
+            <div>
+              <label class="block text-zinc-700 text-sm font-medium mb-1">Nombre</label>
+              {{ user_form.first_name }}
+            </div>
+
+            <div>
+              <label class="block text-zinc-700 text-sm font-medium mb-1">Apellidos</label>
+              {{ user_form.last_name }}
+            </div>
+
+          </div>
+
+          {# Errores del formulario #}
+          {% if user_form.non_field_errors %}
+            <div class="text-red-600 text-sm">{{ user_form.non_field_errors }}</div>
+          {% endif %}
+          {% for field in user_form %}
+            {% for error in field.errors %}
+              <div class="text-red-600 text-sm">{{ field.label }}: {{ error }}</div>
+            {% endfor %}
+          {% endfor %}
+
+          <div class="flex justify-end">
+            <button type="submit" name="save_user"
+                    class="px-5 h-10 rounded-lg bg-red-700 text-white shadow hover:bg-red-800 transition">
+              Guardar cambios
+            </button>
+          </div>
+        </form>
+
+        <hr class="my-8 border-zinc-200">
+
+        {# --------- Formulario de FOTO --------- #}
         <form action="{% url 'my_profile' %}" method="post" enctype="multipart/form-data" id="photoForm">
           {% csrf_token %}
-
           <div class="mb-2 text-zinc-700 text-sm font-medium">Actualizar foto de perfil</div>
 
-          <label for="id_image"
-                 id="dropzone"
-                 class="group flex flex-col items-center justify-center w-full h-28 md:h-32 rounded-xl border border-dashed border-zinc-400 bg-white/70 hover:bg-white transition cursor-pointer px-4 text-center">
+          <div id="dropzone"
+               role="button" tabindex="0"
+               class="group flex flex-col items-center justify-center w-full h-28 md:h-32 rounded-xl border border-dashed border-zinc-400 bg-white/70 hover:bg-white transition cursor-pointer px-4 text-center">
             <div class="text-sm text-zinc-600">
               Arrastra una imagen aquí o <span class="underline font-semibold">haz clic para seleccionar</span>
             </div>
             <div class="mt-1 text-xs text-zinc-500">
               Formatos: JPG/PNG • Tamaño recomendado ≥ 512×512 • Máx. 2 MB
             </div>
-            <input type="file" id="id_image" name="image" accept="image/*" class="hidden">
-          </label>
-
+          </div>
+          <input type="file" id="id_image" name="image" accept="image/*" class="hidden">
           <div id="fileName" class="mt-2 text-xs text-zinc-600 truncate"></div>
 
-          <div class="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            <a href="{% url 'profile_list' %}"
-               class="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-zinc-700 text-white hover:bg-zinc-800 transition shadow">
-              Volver
-            </a>
-
-            <div class="flex items-center gap-3">
-              <button type="button" id="clearBtn"
-                      class="hidden h-10 px-4 rounded-lg bg-zinc-200 text-zinc-700 hover:bg-zinc-300 transition">
-                Limpiar
-              </button>
-              <button type="submit" id="saveBtn" name="save_photo" value="1"
-                      class="h-10 px-5 rounded-lg bg-red-900 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-800 transition"
-                      disabled>
-                Guardar foto
-              </button>
-            </div>
+          <div class="mt-5 flex justify-end gap-3">
+            <button type="button" id="clearBtn"
+                    class="hidden h-10 px-4 rounded-lg bg-zinc-200 text-zinc-700 hover:bg-zinc-300 transition">
+              Limpiar
+            </button>
+            <button type="submit" id="saveBtn" name="save_photo" value="1"
+                    class="h-10 px-5 rounded-lg bg-red-900 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-800 transition"
+                    disabled>
+              Guardar foto
+            </button>
           </div>
         </form>
 
@@ -151,8 +129,7 @@
 </div>
 
 {# -------------------- Modal de recorte con Cropper.js -------------------- #}
-<div id="cropperModal"
-     class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[200]">
+<div id="cropperModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[200]">
   <div class="bg-white rounded-xl p-4 w-[92vw] max-w-[680px]">
     <h4 class="text-lg font-semibold mb-3">Ajusta tu foto</h4>
 
@@ -176,11 +153,10 @@
 
 <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css">
 <script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
-
 <script>
 (function () {
   const input = document.getElementById('id_image');
-  const drop = document.getElementById('dropzone');
+  const drop  = document.getElementById('dropzone');
 
   const previewMobile = document.getElementById('profilePreviewMobile');
   const previewDesk   = document.getElementById('profilePreviewDesk');
@@ -192,7 +168,7 @@
   const clearBtn = document.getElementById('clearBtn');
 
   const avatarPickMobile = document.getElementById('avatarPickMobile');
-  if (avatarPickMobile) avatarPickMobile.addEventListener('click', () => input.click());
+  if (avatarPickMobile) avatarPickMobile.addEventListener('click', openPicker);
 
   const modal = document.getElementById('cropperModal');
   const img   = document.getElementById('cropperImage');
@@ -202,21 +178,35 @@
 
   let cropper = null;
   let objectURL = null;
+  let opening = false; // evita doble apertura
 
-  drop.addEventListener('click', () => input.click());
+  function openPicker() {
+    if (opening) return;
+    opening = true;
+    input.value = '';        // permite volver a elegir el MISMO archivo
+    input.click();
+    setTimeout(() => { opening = false; }, 250);
+  }
 
+  // Click y accesibilidad del dropzone
+  drop.addEventListener('click', openPicker);
+  drop.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(); }
+  });
+
+  // Drag & drop
   ['dragenter','dragover'].forEach(ev =>
     drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('ring-2','ring-red-800/40'); })
   );
   ['dragleave','drop'].forEach(ev =>
     drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('ring-2','ring-red-800/40'); })
   );
-
   drop.addEventListener('drop', e => {
     const f = e.dataTransfer.files && e.dataTransfer.files[0];
     if (f) openCropper(f);
   });
 
+  // Cuando cambia el input, abrimos el cropper
   input.addEventListener('change', () => {
     const f = input.files && input.files[0];
     if (f) openCropper(f);
@@ -225,6 +215,11 @@
   function openCropper(file) {
     if (file.size > 2 * 1024 * 1024) {
       alert("Tamaño máximo permitido: 2 MB.");
+      input.value = '';
+      return;
+    }
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+      alert("Formato no permitido. Usa JPG o PNG.");
       input.value = '';
       return;
     }
@@ -255,6 +250,16 @@
     modal.classList.add('flex');
   }
 
+  function closeCropper() {
+    modal.classList.add('hidden'); modal.classList.remove('flex');
+    if (cropper) { cropper.destroy(); cropper = null; }
+    cleanTemp();
+  }
+
+  function cleanTemp() {
+    if (objectURL) { URL.revokeObjectURL(objectURL); objectURL = null; }
+  }
+
   cancelBtn.addEventListener('click', () => {
     closeCropper();
     input.value = '';
@@ -275,31 +280,23 @@
         if (previewDesk)   previewDesk.src   = previewURL;
         fileName.textContent = file.name;
 
-        saveBtn.disabled = false;
-        clearBtn.classList.remove('hidden');
+        saveBtn && (saveBtn.disabled = false);
+        clearBtn && clearBtn.classList.remove('hidden');
 
         closeCropper();
       }, 'image/webp', 0.92);
   });
 
-  function closeCropper() {
-    modal.classList.add('hidden'); modal.classList.remove('flex');
-    if (cropper) { cropper.destroy(); cropper = null; }
-    cleanTemp();
-  }
-
-  function cleanTemp() {
-    if (objectURL) { URL.revokeObjectURL(objectURL); objectURL = null; }
-  }
-
-  clearBtn.addEventListener('click', () => {
+  clearBtn && clearBtn.addEventListener('click', () => {
     input.value = '';
     fileName.textContent = '';
-    saveBtn.disabled = true;
+    saveBtn && (saveBtn.disabled = true);
     clearBtn.classList.add('hidden');
     if (previewMobile && originalSrcMobile) previewMobile.src = originalSrcMobile;
     if (previewDesk   && originalSrcDesk)   previewDesk.src   = originalSrcDesk;
   });
 })();
 </script>
+
+
 {% endblock %}

@@ -48,6 +48,29 @@ from django.core.cache import cache
 # Copiamos la misma función para evitar dependencias cruzadas
 def _lock_key(username=None, ip=None):
     return f"login_lock:{username or 'unknown'}:{ip or 'unknown'}"
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["username", "first_name", "last_name", "email"]
+        widgets = {
+            "username": forms.TextInput(attrs={
+                "class": "w-full h-10 rounded-lg border border-zinc-300 px-3 shadow-sm"
+            }),
+            "first_name": forms.TextInput(attrs={
+                "class": "w-full h-10 rounded-lg border border-zinc-300 px-3 shadow-sm"
+            }),
+            "last_name": forms.TextInput(attrs={
+                "class": "w-full h-10 rounded-lg border border-zinc-300 px-3 shadow-sm"
+            }),
+            "email": forms.EmailInput(attrs={
+                "class": "w-full h-10 rounded-lg border border-zinc-300 px-3 shadow-sm"
+            }),
+        }
+    def clean_username(self):
+        username = self.cleaned_data.get("username").strip().lower()
+        if User.objects.exclude(pk=self.instance.pk).filter(username__iexact=username).exists():
+            raise forms.ValidationError("Este nombre de usuario ya está en uso.")
+        return username
 
 class LoginForm(AuthenticationForm):
     def clean(self):

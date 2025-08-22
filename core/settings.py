@@ -208,7 +208,7 @@ EMAIL_RECIPIENTS = [
     # 'afernandezz@inacap.cl', 'algonzalezv@inacap.cl',
     # 'enavarrom@inacap.cl', 'farnaldi@inacap.cl',
     # 'jhonorato@inacap.cl', 'mvergarao@inacap.cl',
-    #'pcasanga@inacap.cl',#'farnaldi@inacap.cl'
+    'pcasanga@inacap.cl','farnaldi@inacap.cl',
     'kramosv@inacap.cl','kassramosveg@gmail.com', 
 ]
 # Parámetros de seguridad para el login
