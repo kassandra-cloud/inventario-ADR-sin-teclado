@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="relative min-h-screen">
+  <div class="mx-auto max-w-[1200px] px-3 md:px-6">
+    <div class="mt-8 rounded-xl shadow-xl overflow-hidden bg-gradient-to-r from-white to-gray-300 ring-1 ring-black/5">
+      <div class="flex flex-col md:flex-row">
+
+        <!-- Imagen lateral -->
+        <aside class="hidden md:flex md:w-1/3 items-center justify-center p-6">
+          {% block desktop_image %}{% endblock %}
+        </aside>
+
+        <!-- Panel formulario -->
+        <section class="flex-1 p-4 md:p-8">
+          <div class="md:hidden mb-4 flex items-center gap-3">
+            {% block mobile_image %}{% endblock %}
+            <div>
+              <h2 class="text-lg font-semibold">{% block header_title %}{% endblock %}</h2>
+              <p class="text-xs text-zinc-500">{% block header_subtitle %}{% endblock %}</p>
+            </div>
+          </div>
+
+          <h2 class="hidden md:block text-2xl font-semibold mb-6 text-center">
+            {% block page_title %}{% endblock %}
+          </h2>
+
+          {% block form_open %}{% endblock %}
+          {% block form_body %}{% endblock %}
+          {% block form_actions %}{% endblock %}
+          {% block form_global_errors %}{% endblock %}
+          {% block form_close %}{% endblock %}
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

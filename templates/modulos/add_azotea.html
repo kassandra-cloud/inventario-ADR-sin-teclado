@@ -52,9 +52,25 @@
             <label for="marca" class="block text-black text-sm font-sans italic mb-1">Marca</label>
             <select name="marca" id="marca" required
                     class="w-full rounded-md shadow-sm {% if form.marca.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}">
-                <option value="" {% if not form.marca.value %}selected{% endif %} disabled>Seleccione una marca</option>
-                <option value="HP" {% if form.marca.value == "HP" %}selected{% endif %}>HP</option>
-                <option value="Lenovo" {% if form.marca.value == "Lenovo" %}selected{% endif %}>Lenovo</option>
+                <option value=""disabled selected>Seleccione marca</option>
+                <option value="AOC">AOC</option>
+                <option value="Apple">Apple</option>
+                <option value="Asus">Asus</option>
+                <option value="Cisco">Cisco</option>
+                <option value="Colors">Colors</option>
+                <option value="Epson">Epson</option>
+                <option value="Genérico">Genérico</option>
+                <option value="HP">HP</option>
+                <option value="IIA">IIA</option>
+                <option value="Intel Core">Intel Core</option>
+                <option value="Lanix">Lanix</option>
+                <option value="Lenovo">Lenovo</option>
+                <option value="LG">LG</option>
+                <option value="Oki">Oki</option>
+                <option value="Polycom">Polycom</option>
+                <option value="Samsung">Samsung</option>
+                <option value="ViewSonic">ViewSonic</option>
+                <option value="YXWireless">YXWireless</option>
             </select>
             {% if form.marca.errors %}
                 <div class="text-orange-600 text-sm mt-1">
@@ -131,9 +147,10 @@
         <label for="ubicacion" class="block text-black text-sm font-sans italic mb-1">Ubicación</label>
         <select name="ubicacion" id="ubicacion" required
                 class="w-full rounded-md shadow-sm {% if form.ubicacion.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}">
-            <option value="" {% if not form.ubicacion.value %}selected{% endif %} disabled>Seleccione ubicación</option>
-            <option value="Azotea Norte" {% if form.ubicacion.value == "Azotea Norte" %}selected{% endif %}>Azotea Norte</option>
-            <option value="Azotea Sur" {% if form.ubicacion.value == "Azotea Sur" %}selected{% endif %}>Azotea Sur</option>
+            <option value=""disabled selected>Seleccione ubicación</option>
+
+            <option value="Edificio A, Azotea">Edificio A, Azotea</option>
+           
         </select>
         {% if form.ubicacion.errors %}
             <div class="text-orange-600 text-sm mt-1">

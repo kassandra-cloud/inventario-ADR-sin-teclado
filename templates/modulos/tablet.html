@@ -39,7 +39,7 @@
           <option value="" {% if not request.GET.estado %}selected{% endif %}>Todos</option>
           <option value="Operativo" {% if request.GET.estado == 'Operativo' %}selected{% endif %}>Operativo</option>
           <option value="Dañado" {% if request.GET.estado == 'Dañado' %}selected{% endif %}>Dañado</option>
-          <option value="Mala" {% if request.GET.estado == 'Mala' %}selected{% endif %}>Mala</option>
+          <option value="De Baja" {% if request.GET.estado == 'De Baja' %}selected{% endif %}>De Baja</option>
         </select>
       </div>
 

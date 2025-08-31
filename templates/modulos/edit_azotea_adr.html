@@ -63,9 +63,25 @@
             <label for="marca" class="block text-black text-sm font-sans italic mb-1">Marca</label>
             <select name="marca" id="marca" required
                     class="w-full rounded-md shadow-sm {% if form.marca.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}">
-                <option value="" {% if not form.marca.value %}selected{% endif %} disabled>Seleccione una marca</option>
+                <option value=""disabled selected>Seleccione marca</option>
+                <option value="AOC" {% if form.marca.value == "AOC" %}selected{% endif %}>AOC</option>
+                <option value="Apple" {% if form.marca.value == "Apple" %}selected{% endif %}>Apple</option>
+                <option value="Asus" {% if form.marca.value == "Asus" %}selected{% endif %}>Asus</option>
+                <option value="Cisco" {% if form.marca.value == "Cisco" %}selected{% endif %}>Cisco</option>
+                <option value="Colors" {% if form.marca.value == "Colors" %}selected{% endif %}>Colors</option>
+                <option value="Epson" {% if form.marca.value == "Epson" %}selected{% endif %}>Epson</option>
+                <option value="Genérico" {% if form.marca.value == "Genérico" %}selected{% endif %}>Genérico</option>
                 <option value="HP" {% if form.marca.value == "HP" %}selected{% endif %}>HP</option>
+                <option value="IIA" {% if form.marca.value == "IIA" %}selected{% endif %}>IIA</option>
+                <option value="Intel Core" {% if form.marca.value == "Intel Core" %}selected{% endif %}>Intel Core</option>
+                <option value="Lanix" {% if form.marca.value == "Lanix" %}selected{% endif %}>Lanix</option>
                 <option value="Lenovo" {% if form.marca.value == "Lenovo" %}selected{% endif %}>Lenovo</option>
+                <option value="LG" {% if form.marca.value == "LG" %}selected{% endif %}>LG</option>
+                <option value="Oki" {% if form.marca.value == "Oki" %}selected{% endif %}>Oki</option>
+                <option value="Polycom" {% if form.marca.value == "Polycom" %}selected{% endif %}>Polycom</option>
+                <option value="Samsung" {% if form.marca.value == "Samsung" %}selected{% endif %}>Samsung</option>
+                <option value="ViewSonic" {% if form.marca.value == "ViewSonic" %}selected{% endif %}>ViewSonic</option>
+                <option value="YXWireless" {% if form.marca.value == "YXWireless" %}selected{% endif %}>YXWireless</option>
             </select>
             {% if form.marca.errors %}
                 <div class="text-yellow-300 text-sm mt-1">
@@ -142,9 +158,10 @@
         <label for="ubicacion" class="block text-black text-sm font-sans italic mb-1">Ubicación</label>
         <select name="ubicacion" id="ubicacion" required
                 class="w-full rounded-md shadow-sm {% if form.ubicacion.errors %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}">
-            <option value="" {% if not form.ubicacion.value %}selected{% endif %} disabled>Seleccione ubicación</option>
-            <option value="Azotea Norte" {% if form.ubicacion.value == "Azotea Norte" %}selected{% endif %}>Azotea Norte</option>
-            <option value="Azotea Sur" {% if form.ubicacion.value == "Azotea Sur" %}selected{% endif %}>Azotea Sur</option>
+                
+            <option value=""disabled selected>Seleccione ubicación</option>
+
+            <option value="Edificio A, Azotea" {% if form.ubicacion.value == "Edificio A, Azotea" %}selected{% endif %}>Edificio A, Azotea</option>
         </select>
         {% if form.ubicacion.errors %}
             <div class="text-yellow-300 text-sm mt-1">
