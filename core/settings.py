@@ -29,12 +29,11 @@ SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG =  config('DEBUG',cast=bool)
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 RENDER_EXTERNAL_HOSTNAME = config('RENDER_EXTERNAL_HOSTNAME', default=None)
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
+    CSRF_TRUSTED_ORIGINS = [f'https://{RENDER_EXTERNAL_HOSTNAME}']
 LOGIN_REDIRECT_URL = '/inicio'
 LOGOUT_REDIRECT_URL = '/'
 
@@ -77,6 +76,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_browser_reload.middleware.BrowserReloadMiddleware',
+    
 
 ]
 
@@ -189,20 +189,26 @@ LOGGING = {
 
 
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
-EMAIL_PORT = config("EMAIL_PORT", cast=int, default=587)
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
-EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool, default=False)
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
+if DEBUG:
+    # En desarrollo, imprime el correo en la terminal y evita timeouts SMTP
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 465       #  #para subir cambios en la nube cambair a 587
+    EMAIL_USE_TLS = True
+    EMAIL_USE_SSL = False
+    EMAIL_TIMEOUT = 30         # evita bloqueos largos
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+    SERVER_EMAIL = EMAIL_HOST_USER
 
 
 EMAIL_RECIPIENTS = [
     # 'afernandezz@inacap.cl', 'algonzalezv@inacap.cl',
     # 'enavarrom@inacap.cl', 'farnaldi@inacap.cl',
-    # 'jhonorato@inacap.cl', 'mvergarao@inacap.cl',
+    #'mvergarao@inacap.cl',
     'pcasanga@inacap.cl','farnaldi@inacap.cl',
     'kramosv@inacap.cl','kassramosveg@gmail.com', 
 ]
@@ -212,6 +218,7 @@ LOGIN_FAILED_WINDOW_SECONDS = 900  # ventana de 15 min para el conteo (ajústalo
 LOGIN_LOCK_SECONDS = 60
 
 # (opcional) carpeta donde guardar temporales de backup
+BASE_DIR = Path(__file__).resolve().parent.parent
 BACKUP_DIR = config('BACKUP_DIR', default=os.path.join(BASE_DIR, 'backups'))
 
 PASSWORD_RESET_TIMEOUT = 60 * 60       # (opcional) 1 hora de validez del link

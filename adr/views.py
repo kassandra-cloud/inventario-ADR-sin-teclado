@@ -513,9 +513,28 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('profile_list')
 
 
+# --- Helper seguro para enviar correos (no rompe si falla) ---
+def _enviar_notificacion(asunto: str, mensaje: str, destinatarios: list[str] | tuple[str, ...] | None):
+    """
+    Envía un correo simple. Si no hay destinatarios o falla, no levanta excepción.
+    Usa DEFAULT_FROM_EMAIL si está definido.
+    """
+    try:
+        if not destinatarios:
+            return  # sin destinatarios, no envía
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
+        send_mail(
+            subject=asunto,
+            message=mensaje,
+            from_email=from_email,
+            recipient_list=list(destinatarios),
+            fail_silently=True,  # importantísimo para no romper el flujo
+        )
+    except Exception:
+        # No hacemos nada: el borrado no debe fallar por el correo
+        pass
 
-    
-@add_group_name_to_context
+
 class ProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = User
     success_url = reverse_lazy('profile_list')
@@ -537,52 +556,51 @@ class ProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return context
 
     def delete(self, request, *args, **kwargs):
-        """Procesa la eliminación de un usuario y envía notificación"""
+        """Procesa la eliminación de un usuario y envía notificación (sin romper si el correo falla)"""
         try:
-            # Obtener el usuario que se quiere eliminar
             self.object = self.get_object()
+
+            # --- Evitar auto-eliminación (opcional, recomendado) ---
+            if self.object == request.user:
+                messages.error(request, 'No puedes eliminar tu propia cuenta.')
+                return redirect(self.success_url)
+
             nombre_usuario = self.object.username
-            nombre_completo = f"{self.object.first_name} {self.object.last_name}"
+            nombre_completo = f"{self.object.first_name} {self.object.last_name}".strip()
             grupo = self.object.groups.first().name if self.object.groups.exists() else "Sin grupo asignado"
-            success_url = self.get_success_url()
 
             # Eliminar el usuario
             self.object.delete()
 
-            # Enviar notificación por correo
+            # Preparar y enviar notificación (si hay destinatarios configurados)
             accion = "Eliminación de Perfil"
-            mensaje = f"""
-            El usuario {request.user.get_full_name()} ha eliminado el siguiente perfil de usuario:
+            mensaje = (
+                f"El usuario {request.user.get_full_name() or request.user.username} ha eliminado "
+                f"el siguiente perfil de usuario:\n\n"
+                f"Acción: {accion}\n"
+                f"Nombre de Usuario Eliminado: {nombre_usuario}\n"
+                f"Nombre Completo: {nombre_completo or '-'}\n"
+                f"Grupo Asignado: {grupo}\n"
+            )
 
-            Acción: {accion}
-            Nombre de Usuario Eliminado: {nombre_usuario}
-            Nombre Completo: {nombre_completo}
-            Grupo Asignado: {grupo}
-            """
-
-            # Enviar el correo independientemente del tipo de solicitud (normal o AJAX)
-            enviar_notificacion_asunto(
+            # Puedes usar una lista en settings: EMAIL_RECIPIENTS = ["soporte@tudominio.cl", ...]
+            destinatarios = getattr(settings, "EMAIL_RECIPIENTS", None)
+            _enviar_notificacion(
                 asunto="Eliminación de Perfil de Usuario",
                 mensaje=mensaje,
-                destinatarios=settings.EMAIL_RECIPIENTS
+                destinatarios=destinatarios,
             )
-            print("Correo de eliminación de perfil enviado.")
-            
-            # Mostrar mensaje de éxito
+
             messages.success(self.request, f'Usuario {nombre_usuario} eliminado exitosamente')
-            return HttpResponseRedirect(success_url)
+            return HttpResponseRedirect(self.get_success_url())
 
         except Exception as e:
-            messages.error(self.request, f'Error al eliminar usuario: {str(e)}')
+            messages.error(self.request, f'Error al eliminar usuario: {e}')
             return redirect('profile_list')
 
     def post(self, request, *args, **kwargs):
-        """
-        Sobreescribimos post para manejar las solicitudes AJAX si es necesario
-        """
+        # El botón del template hace POST, así que delegamos en delete()
         return self.delete(request, *args, **kwargs)
-
-
 
 
 

@@ -12,159 +12,120 @@
   <div class="container mx-auto px-4 lg:ml-64">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start pt-6 lg:pt-12">
 
-      {# -------- Foto en desktop (preview) -------- #}
+      {# ---------- FOTO ESCRITORIO (GRANDE) ---------- #}
       <aside class="hidden lg:flex justify-center self-start">
         <div class="w-full max-w-sm">
           <div class="rounded-xl overflow-hidden shadow-lg">
             {% if user_profile.profile.image and user_profile.profile.image.name %}
-              <img id="profilePreviewDesk"
-                   class="w-full object-cover max-h-[500px]"
+              <img id="profilePreviewDesk" class="w-full object-cover max-h-[500px]"
                    src="{{ user_profile.profile.image.url }}"
-                   data-original-src="{{ user_profile.profile.image.url }}"
                    alt="Foto de perfil"
-                   onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'/>
+                   onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'>
             {% else %}
-              <img id="profilePreviewDesk"
-                   class="w-full object-cover max-h-[500px]"
-                   src="{% get_media_prefix %}default.png"
-                   data-original-src="{% get_media_prefix %}default.png"
-                   alt="Foto por defecto"/>
+              <img id="profilePreviewDesk" class="w-full object-cover max-h-[500px]"
+                   src="{% get_media_prefix %}default.png" alt="Foto por defecto">
             {% endif %}
           </div>
 
-          {# Botón eliminar SOLO escritorio #}
           <form method="post" action="{% url 'profile_edit' user_profile.pk %}" class="mt-4">
             {% csrf_token %}
             <button type="submit" name="delete_image" value="1"
-                    class="w-full bg-red-700 hover:bg-red-800 text-white font-medium py-2 px-4 rounded-lg shadow transition"
-                    onclick="return confirm('¿Eliminar la foto de perfil y restaurar la imagen por defecto?');">
+                    class="w-full bg-red-700 hover:bg-red-800 text-white font-medium py-2 px-4 rounded-lg shadow transition">
               Eliminar foto
             </button>
           </form>
         </div>
       </aside>
 
-      {# -------------------- Formulario -------------------- #}
+      {# ---------- FORMULARIO ---------- #}
       <section class="lg:col-span-2 self-start">
         <div class="bg-gradient-to-br from-white via-gray-100 to-gray-200 rounded-2xl shadow-xl p-6 sm:p-8">
 
-          {# Avatar circular en móvil/tablet con botón Cambiar #}
-          <div class="flex items-center gap-4 sm:gap-6 lg:hidden mb-4">
-            <div class="relative group shrink-0">
+          {# --- AVATAR MOVIL/TABLET (ICONO REDONDO) --- #}
+          <div class="flex items-center gap-4 lg:hidden mb-6">
+            <div class="relative shrink-0">
               {% if user_profile.profile.image and user_profile.profile.image.name %}
                 <img id="profilePreviewMobile"
                      src="{{ user_profile.profile.image.url }}"
-                     data-original-src="{{ user_profile.profile.image.url }}"
-                     class="w-24 h-24 rounded-full object-cover ring-2 ring-white/70 shadow"
+                     class="w-20 h-20 rounded-full object-cover ring-2 ring-gray-300 shadow"
                      alt="Foto de perfil"
-                     onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'/>
+                     onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'>
               {% else %}
                 <img id="profilePreviewMobile"
                      src="{% get_media_prefix %}default.png"
-                     data-original-src="{% get_media_prefix %}default.png"
-                     class="w-24 h-24 rounded-full object-cover ring-2 ring-white/70 shadow"
-                     alt="Foto por defecto"/>
+                     class="w-20 h-20 rounded-full object-cover ring-2 ring-gray-300 shadow"
+                     alt="Foto por defecto">
               {% endif %}
-              <button type="button" id="avatarPickMobile"
-                      class="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/35 transition grid place-items-center text-white text-xs opacity-0 group-hover:opacity-100">
-                Cambiar
-              </button>
             </div>
-
+            
             <div class="flex-1">
-              <h2 class="text-xl sm:text-2xl font-semibold text-gray-900">Editar Usuario</h2>
-              <p class="text-xs text-gray-500">Actualiza los datos y la foto.</p>
+              <h2 class="text-xl font-semibold text-gray-900">Editar Usuario</h2>
+              <p class="text-sm text-gray-500">Actualiza tus datos y tu foto.</p>
 
-              {# >>> Botón eliminar visible en tablet/móvil <<< #}
-              <form method="post" action="{% url 'profile_edit' user_profile.pk %}" class="mt-3">
+              <form method="post" action="{% url 'profile_edit' user_profile.pk %}" class="mt-2">
                 {% csrf_token %}
                 <button type="submit" name="delete_image" value="1"
-                        class="w-full sm:w-auto inline-flex items-center justify-center bg-red-700 hover:bg-red-800 text-white text-sm font-medium py-2 px-4 rounded-lg shadow transition"
-                        onclick="return confirm('¿Eliminar la foto de perfil y restaurar la imagen por defecto?');">
+                        class="bg-red-700 hover:bg-red-800 text-white text-sm font-medium py-1 px-3 rounded-lg shadow">
                   Eliminar foto
                 </button>
               </form>
-              {# ---------------------------------------------- #}
             </div>
           </div>
 
-          {# Título desktop #}
+          {# --- TITULO + ELIMINAR (DESKTOP) --- #}
           <div class="hidden lg:flex items-start justify-between mb-6">
             <h2 class="text-2xl font-semibold text-gray-900">Editar Usuario</h2>
-            <form action="{% url 'profile_delete' user_profile.pk %}" method="post">
-              {% csrf_token %}
-              <button type="submit"
-                      class="bg-red-900 hover:bg-red-800 text-white py-2 px-4 rounded-lg shadow"
-                      onclick="return confirm('¿Está seguro que desea eliminar este usuario?');">
-                <i class="fas fa-trash"></i>
-              </button>
-            </form>
+
+            {% if request.user.is_superuser and user_profile.pk != request.user.pk %}
+              <form method="post"
+                    action="{% url 'profile_delete' user_profile.pk %}"
+                    onsubmit="return confirm('¿Seguro que deseas eliminar este usuario? Esta acción no se puede deshacer.');">
+                {% csrf_token %}
+                <button type="submit"
+                        class="px-4 py-2 rounded-lg bg-red-700 text-white font-semibold shadow hover:bg-red-800">
+                  Eliminar usuario
+                </button>
+              </form>
+            {% endif %}
           </div>
 
-          {# -------- Form principal (un solo form) -------- #}
+          {# --- FORMULARIO DE EDICION --- #}
           <form action="{% url 'profile_edit' user_profile.pk %}" method="post" enctype="multipart/form-data" id="editForm" onsubmit="return validateEditForm()">
             {% csrf_token %}
 
-            {# Dropzone + input file hidden #}
-            <div class="mb-4">
-              <div class="mb-2 text-zinc-700 text-sm font-medium">Foto de Perfil</div>
-
-              <div id="dropzone" role="button" tabindex="0"
-                   class="group flex flex-col items-center justify-center w-full h-28 md:h-32 rounded-xl border border-dashed border-zinc-400 bg-white/70 hover:bg-white transition cursor-pointer px-4 text-center">
-                <div class="text-sm text-zinc-600">
-                  Arrastra una imagen aquí o <span class="underline font-semibold">haz clic para seleccionar</span>
-                </div>
-                <div class="mt-1 text-xs text-zinc-500">
-                  Formatos: JPG/PNG • Recomendado ≥ 512×512 • Máx. 2 MB
-                </div>
-              </div>
-
-              <input type="file" id="id_image" name="image" accept="image/*" class="hidden">
-              <div id="fileName" class="mt-2 text-xs text-zinc-600 truncate"></div>
-              <div class="mt-2">
-                <button type="button" id="clearBtn"
-                        class="hidden h-9 px-3 rounded-lg bg-zinc-200 text-zinc-700 hover:bg-zinc-300 transition">
-                  Limpiar selección
-                </button>
-              </div>
-            </div>
-
-            {# Campos usuario #}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {# Usuario / Correo #}
+            <div class="form-row-grid cols-2 form-row">
               <div>
-                <label for="username" class="block text-sm font-medium text-gray-800">Username</label>
+                <label for="username" class="ui-label">Username</label>
                 <input type="text" name="username" id="username"
-                       value="{{ user_profile.username }}" readonly
-                       class="w-full rounded-md border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed">
+                       value="{{ user_profile.username }}" readonly class="ui-input">
               </div>
               <div>
-                <label for="email" class="block text-sm font-medium text-gray-800">Correo</label>
+                <label for="email" class="ui-label">Correo</label>
                 <input type="email" name="email" id="email"
-                       value="{{ user_profile.email }}"
-                       class="w-full rounded-md shadow-sm border-gray-300"
-                       placeholder="Ejemplo: correo@ejemplo.com">
+                       value="{{ user_profile.email }}" placeholder="Ejemplo: correo@ejemplo.com" class="ui-input">
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {# Nombre / Apellidos #}
+            <div class="form-row-grid cols-2 form-row">
               <div>
-                <label for="first_name" class="block text-sm font-medium text-gray-800">Nombre</label>
+                <label for="first_name" class="ui-label">Nombre</label>
                 <input type="text" name="first_name" id="first_name"
-                       value="{{ user_profile.first_name }}"
-                       class="w-full rounded-md shadow-sm border-gray-300" placeholder="Nombre">
+                       value="{{ user_profile.first_name }}" class="ui-input" placeholder="Nombre">
               </div>
               <div>
-                <label for="last_name" class="block text-sm font-medium text-gray-800">Apellidos</label>
+                <label for="last_name" class="ui-label">Apellidos</label>
                 <input type="text" name="last_name" id="last_name"
-                       value="{{ user_profile.last_name }}"
-                       class="w-full rounded-md shadow-sm border-gray-300" placeholder="Apellidos">
+                       value="{{ user_profile.last_name }}" class="ui-input" placeholder="Apellidos">
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {# Cargo / Nueva / Confirmar (alineados en desktop) #}
+            <div class="form-row-grid cols-3 form-row">
               <div>
-                <label for="group" class="block text-sm font-medium text-gray-800">Cargo</label>
-                <select name="group" id="group" class="w-full rounded-md shadow-sm border-gray-300">
+                <label for="group" class="ui-label">Cargo</label>
+                <select name="group" id="group" class="ui-select">
                   <option disabled>Seleccione el Cargo</option>
                   {% for singular_group, group_id in singular_groups %}
                     <option value="{{ group_id }}" {% if group_id == group_id_user %}selected{% endif %}>
@@ -173,48 +134,37 @@
                   {% endfor %}
                 </select>
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label for="new_password1" class="block text-sm font-medium text-gray-800">Nueva Contraseña</label>
-                  <input type="password" name="new_password1" id="new_password1"
-                         class="w-full rounded-md shadow-sm border-gray-300" placeholder="Nueva Contraseña" autocomplete="new-password">
-                  <span id="password1-error" class="text-yellow-700 text-xs mt-1 hidden">
-                    La contraseña debe tener al menos 12 caracteres
-                  </span>
-                </div>
-                <div>
-                  <label for="new_password2" class="block text-sm font-medium text-gray-800">Confirmar Nueva Contraseña</label>
-                  <input type="password" name="new_password2" id="new_password2"
-                         class="w-full rounded-md shadow-sm border-gray-300" placeholder="Confirmar Nueva Contraseña" autocomplete="new-password">
-                  <span id="password2-error" class="text-yellow-700 text-xs mt-1 hidden">
-                    Las contraseñas no coinciden
-                  </span>
-                </div>
+              <div>
+                <label for="new_password1" class="ui-label">Nueva Contraseña</label>
+                <input type="password" name="new_password1" id="new_password1"
+                       class="ui-input" placeholder="Nueva Contraseña" autocomplete="new-password">
+                <span id="password1-error" class="text-yellow-700 text-xs mt-1 hidden">
+                  La contraseña debe tener al menos 12 caracteres
+                </span>
+              </div>
+              <div>
+                <label for="new_password2" class="ui-label">Confirmar Nueva Contraseña</label>
+                <input type="password" name="new_password2" id="new_password2"
+                       class="ui-input" placeholder="Confirmar Nueva Contraseña" autocomplete="new-password">
+                <span id="password2-error" class="text-yellow-700 text-xs mt-1 hidden">
+                  Las contraseñas no coinciden
+                </span>
               </div>
             </div>
 
-            {# Botones #}
+            {# Botones inferiores #}
             <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between mt-6">
-              <a href="{% url 'profile_list' %}"
-                 class="bg-zinc-700 hover:bg-zinc-800 text-white font-medium py-2 px-4 rounded-lg text-center">
+              <a href="{% url 'profile_list' %}" class="btn-secondary text-center">
                 <i class="fas fa-arrow-left"></i>
               </a>
-              <button type="submit"
-                      class="bg-red-900 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow-md hover:shadow-lg">
-                Guardar
-              </button>
+              <button type="submit" class="btn-primary">Guardar</button>
             </div>
           </form>
 
           {% if messages %}
             <div class="mt-4 space-y-3" aria-live="polite">
               {% for message in messages %}
-                <div class="p-3 sm:p-4 rounded
-                            {% if message.tags == 'success' %}
-                              bg-green-100 border border-green-300 text-green-800
-                            {% else %}
-                              bg-red-100 border border-red-300 text-red-800
-                            {% endif %}">
+                <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
                   {{ message }}
                 </div>
               {% endfor %}
@@ -226,157 +176,47 @@
   </div>
 </div>
 
-{# -------- Modal de recorte con Cropper.js -------- #}
-<div id="cropperModal"
-     class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[200]">
-  <div class="bg-white rounded-xl p-4 w-[92vw] max-w-[680px]">
-    <h4 class="text-lg font-semibold mb-3">Ajusta tu foto</h4>
+{# ---------- ESTILOS UNIFORMES ---------- #}
+<style>
+  .ui-label{display:block;font-size:.875rem;font-weight:600;color:#1f2937;margin-bottom:.25rem;}
+  .ui-input{width:100%;height:44px;padding:.5rem .75rem;border:1px solid #d1d5db;border-radius:.5rem;background:#fff;color:#111827;line-height:1.25rem;transition:.15s;}
+  .ui-input[readonly]{background:#f3f4f6;cursor:not-allowed;color:#6b7280;}
+  .ui-input::placeholder{color:#9ca3af;}
+  .ui-input:focus{outline:none;border-color:#7f1d1d;box-shadow:0 0 0 3px rgba(127,29,29,.25);}
+  .ui-select{width:100%;height:44px;padding:.5rem 2.25rem .5rem .75rem;border:1px solid #d1d5db;border-radius:.5rem;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E") no-repeat right .6rem center/16px 16px;color:#111827;appearance:none;transition:.15s;}
+  .ui-select:focus{outline:none;border-color:#7f1d1d;box-shadow:0 0 0 3px rgba(127,29,29,.25);}
 
-    <div class="flex flex-col md:flex-row gap-4">
-      <div class="flex-1">
-        <img id="cropperImage" class="max-h-[60vh] w-full object-contain" />
-      </div>
-      <div class="w-28 h-28 rounded-full overflow-hidden ring-2 ring-zinc-200 shrink-0 self-center md:self-start">
-        <div id="previewCircle" class="w-28 h-28"></div>
-      </div>
-    </div>
+  .btn-secondary{background:#3f3f46;color:#fff;font-weight:600;padding:.5rem 1rem;border-radius:.5rem;}
+  .btn-secondary:hover{background:#27272a;}
+  .btn-primary{background:#7f1d1d;color:#fff;font-weight:600;padding:.5rem 1rem;border-radius:.5rem;box-shadow:0 2px 6px rgba(0,0,0,.12);}
+  .btn-primary:hover{background:#991b1b;box-shadow:0 4px 10px rgba(0,0,0,.16);}
 
-    <div class="mt-4 flex justify-end gap-3">
-      <button type="button" id="cancelCrop"
-              class="h-10 px-4 rounded-lg bg-zinc-200 text-zinc-700 hover:bg-zinc-300">Cancelar</button>
-      <button type="button" id="applyCrop"
-              class="h-10 px-4 rounded-lg bg-red-900 text-white hover:bg-red-800">Aplicar</button>
-    </div>
-  </div>
-</div>
+  .form-row{margin-bottom:1rem;}
+  .form-row-grid{display:grid;gap:1rem;}
+  @media (min-width:768px){
+    .form-row-grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .form-row-grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+  }
 
-<link rel="stylesheet" href="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css">
-<script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
+  .alert{padding:.75rem 1rem;border-radius:.5rem;}
+  .alert-success{background:#ecfdf5;border:1px solid #10b98140;color:#065f46;}
+  .alert-error{background:#fef2f2;border:1px solid #ef444440;color:#7f1d1d;}
+</style>
 
+{# ---------- VALIDACION BASICA CONTRASEÑA ---------- #}
 <script>
 function validateEditForm() {
   let ok = true;
   const p1 = document.getElementById('new_password1');
   const p2 = document.getElementById('new_password2');
-  if (p1.value && p1.value.length < 12) { document.getElementById('password1-error').classList.remove('hidden'); ok = false; }
-  else { document.getElementById('password1-error').classList.add('hidden'); }
+  if (p1.value && p1.value.length < 12) {
+    document.getElementById('password1-error').classList.remove('hidden'); ok = false;
+  } else { document.getElementById('password1-error').classList.add('hidden'); }
   if (p1.value || p2.value) {
     if (p1.value !== p2.value) { document.getElementById('password2-error').classList.remove('hidden'); ok = false; }
     else { document.getElementById('password2-error').classList.add('hidden'); }
   } else { document.getElementById('password2-error').classList.add('hidden'); }
   return ok;
 }
-
-(function () {
-  const input  = document.getElementById('id_image');
-  const drop   = document.getElementById('dropzone');
-  const pick   = document.getElementById('avatarPickMobile');
-
-  const previewMobile = document.getElementById('profilePreviewMobile');
-  const previewDesk   = document.getElementById('profilePreviewDesk');
-  const originalSrcMobile = previewMobile ? previewMobile.getAttribute('data-original-src') : null;
-  const originalSrcDesk   = previewDesk   ? previewDesk.getAttribute('data-original-src')   : null;
-
-  const fileName = document.getElementById('fileName');
-  const clearBtn = document.getElementById('clearBtn');
-
-  const modal = document.getElementById('cropperModal');
-  const img   = document.getElementById('cropperImage');
-  const applyBtn = document.getElementById('applyCrop');
-  const cancelBtn = document.getElementById('cancelCrop');
-  const previewCircle = document.getElementById('previewCircle');
-
-  let cropper = null, objectURL = null, opening = false;
-
-  function openPicker() {
-    if (opening) return;
-    opening = true;
-    input.value = '';                    // <- permite seleccionar el mismo archivo
-    input.click();
-    setTimeout(() => opening = false, 250);
-  }
-
-  if (pick) pick.addEventListener('click', openPicker);
-  drop.addEventListener('click', openPicker);
-  drop.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(); }
-  });
-
-  // Drag & drop
-  ['dragenter','dragover'].forEach(ev =>
-    drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('ring-2','ring-red-800/40'); })
-  );
-  ['dragleave','drop'].forEach(ev =>
-    drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('ring-2','ring-red-800/40'); })
-  );
-  drop.addEventListener('drop', e => {
-    const f = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f) openCropper(f);
-  });
-
-  input.addEventListener('change', () => {
-    const f = input.files && input.files[0];
-    if (f) openCropper(f);
-  });
-
-  function openCropper(file) {
-    if (file.size > 2 * 1024 * 1024) { alert("Tamaño máximo permitido: 2 MB."); input.value = ''; return; }
-    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { alert("Formato no permitido. Usa JPG o PNG."); input.value = ''; return; }
-
-    if (objectURL) URL.revokeObjectURL(objectURL);
-    objectURL = URL.createObjectURL(file);
-    img.src = objectURL;
-
-    img.onload = () => {
-      if (img.naturalWidth < 400 || img.naturalHeight < 400) {
-        alert("La imagen debe tener al menos 400×400 píxeles.");
-        cleanTemp(); input.value = ''; return;
-      }
-      if (cropper) cropper.destroy();
-      cropper = new Cropper(img, {
-        aspectRatio: 1,
-        viewMode: 1,
-        dragMode: 'move',
-        autoCropArea: 1,
-        preview: previewCircle
-      });
-    };
-
-    modal.classList.remove('hidden'); modal.classList.add('flex');
-  }
-
-  function closeCropper() {
-    modal.classList.add('hidden'); modal.classList.remove('flex');
-    if (cropper) { cropper.destroy(); cropper = null; }
-    cleanTemp();
-  }
-  function cleanTemp() { if (objectURL) { URL.revokeObjectURL(objectURL); objectURL = null; } }
-
-  cancelBtn.addEventListener('click', () => { closeCropper(); input.value=''; });
-  applyBtn.addEventListener('click', () => {
-    if (!cropper) return;
-    cropper.getCroppedCanvas({ width: 512, height: 512 })
-      .toBlob((blob) => {
-        const file = new File([blob], 'avatar.webp', { type: 'image/webp' });
-        const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files;
-
-        const previewURL = URL.createObjectURL(blob);
-        if (previewMobile) previewMobile.src = previewURL;
-        if (previewDesk)   previewDesk.src   = previewURL;
-
-        fileName.textContent = file.name;
-        clearBtn.classList.remove('hidden');
-        closeCropper();
-      }, 'image/webp', 0.92);
-  });
-
-  clearBtn.addEventListener('click', () => {
-    input.value = '';
-    fileName.textContent = '';
-    clearBtn.classList.add('hidden');
-    if (previewMobile && originalSrcMobile) previewMobile.src = originalSrcMobile;
-    if (previewDesk   && originalSrcDesk)   previewDesk.src   = originalSrcDesk;
-  });
-})();
 </script>
 {% endblock %}
