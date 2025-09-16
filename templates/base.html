@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    {% load static %}
+    <title>{% block title %} {% endblock %}</title>
+    <!-- Enlace al archivo de estilos de Tailwind CSS -->
+    <!-- Enlace al archivo de la biblioteca FontAwesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="shortcut icon" href="{%  static 'imagenes/favicon.ico' %}" type="image/x-icon">
+    <!-- Script para incluir TailwindCSS -->
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'css/busqueda_global.css' %}">
+
+    <style>
+      body {
+        -webkit-user-select: none; /* Safari */
+        -ms-user-select: none; /* IE 10 and IE 11 */
+        user-select: none; /* Standard syntax */
+      }
+    </style>
+  </head>
+
+  <body>
+    
+    <div class="header font-sans">{% block header %}{% include 'componentes/navbar.html' %}{% endblock %}</div>
+
+    <div class="sidenav font-sans">{% block navbar %}{% endblock %}</div>
+    
+    <div class="sidebar font-sans">{% block sidebar %}{% include 'componentes/sidebar.html' %}{% endblock %}</div>
+    
+    <div class="contenido font-sans">{% block content %}{% endblock content %}</div>
+    
+    <div class="imagen">{% block img %} {% endblock %}</div>
+
+    <div class="footer">{% block footer %} {% endblock %}</div>
+
+    <!-- Script de SweetAlert -->
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Manejo de mensajes con SweetAlert -->
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+          <script>
+            Swal.fire({
+              title: "¡Excelente!",
+              text: "{{ message }}",
+              icon: "success",
+            });
+          </script>
+        {% elif message.tags == 'error' %}
+          <script>
+            Swal.fire({
+              title: "Error",
+              text: "{{ message }}",
+              icon: "error",
+            });
+          </script>
+        {% elif message.tags == 'warning' %}
+          <script>
+            Swal.fire({
+              title: "Advertencia",
+              text: "{{ message }}",
+              icon: "warning",
+            });
+          </script>
+        {% elif message.tags == 'info' %}
+          <script>
+            Swal.fire({
+              title: "Información",
+              text: "{{ message }}",
+              icon: "info",
+            });
+          </script>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+
+    <!-- <script>
+      document.addEventListener('touchstart', function (event) {
+          const touch = event.touches[0];
+          const screenWidth = window.innerWidth;
+  
+          // Si el usuario toca en los primeros 20px del lado izquierdo de la pantalla
+          if (touch.clientX < 20) {
+              const sidebar = document.querySelector('.sidebar');
+              if (sidebar) {
+                  sidebar.style.left = '0';
+              }
+          }
+  
+          // Si el usuario toca en los primeros 20px de la parte superior de la pantalla
+          if (touch.clientY < 20) {
+              const navbar = document.querySelector('.navbar');
+              if (navbar) {
+                  navbar.style.top = '0';
+              }
+          }
+      });
+  
+      // Evento para ocultar la sidebar si se toca fuera de ella
+      document.addEventListener('touchend', function (event) {
+          const sidebar = document.querySelector('.sidebar');
+          if (sidebar && sidebar.style.left === '0px') {
+              setTimeout(() => {
+                  sidebar.style.left = '-300px';
+              }, 3000); // Después de 3 segundos de haber terminado el toque
+          }
+      });
+
+      // Deshabilitar clic derecho
+      // document.addEventListener('contextmenu', function(e) {
+      //  e.preventDefault();
+      // });
+    </script> -->
+  
+    {% block js %}
+    <script src="{% static 'js/virtual-keyboard.js' %}"></script>
+    <script src="{% static 'js/sidebar.js' %}"></script>
+    <script src="{% static 'js/search.js' %}"></script>
+    {% endblock %}
+
+  </body>
+</html>

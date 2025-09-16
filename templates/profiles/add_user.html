@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registro Nuevo Usuario{% endblock %}
+
+{% block sidebar %}
+<div class="contents">
+  {% include 'componentes/sidebar.html' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="user-register-page" class="w-full mx-auto px-4 py-6 md:pl-72">
+  <div class="w-full max-w-lg sm:max-w-xl md:max-w-3xl bg-gradient-to-r from-white to-gray-300 rounded-2xl shadow-xl p-4 sm:p-6 mx-auto">
+
+    {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+          <div id="alert-{{ forloop.counter }}"
+               class="urp-alert flex items-start justify-between gap-3 bg-green-100 border border-green-300 text-green-800 rounded-lg px-3 py-2 sm:px-4 sm:py-3">
+            <span class="text-sm sm:text-base">{{ message }}</span>
+            <button type="button"
+                    class="shrink-0 text-green-800/80 text-xl leading-none px-1"
+                    onclick="document.getElementById('alert-{{ forloop.counter }}').remove()">
+              ×
+            </button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form action="{% url 'add_user' %}" method="post" onsubmit="return URP.validateForm()">
+      {% csrf_token %}
+      <h2 class="text-gray-800 text-xl sm:text-2xl font-semibold mb-4 text-center">Registro Nuevo Usuario</h2>
+
+      {# Username + Foto (foto primero en móvil, derecha en md+) #}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
+        <div class="flex items-center justify-center order-1 md:order-2">
+          <img src="{% get_media_prefix %}default.png"
+               onerror='this.onerror=null; this.src="{% get_media_prefix %}default.png"'
+               alt="Default Profile"
+               class="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover ring-1 ring-black/10">
+        </div>
+
+        {# ↓↓↓ AQUI BAJAMOS EL BLOQUE DE USERNAME EN NOTEBOOK/DESKTOP ↓↓↓ #}
+        <div class="order-2 md:order-1 md:mt-6 lg:mt-8">
+          <label for="username" class="block text-sm font-semibold text-gray-700 mb-1">
+            Username <span class="text-red-500">*</span>
+          </label>
+          <input type="text" name="username" id="username"
+                 placeholder="Nombre de Usuario" autocomplete="off" required minlength="3"
+                 class="urp-input w-full" />
+          {% if form.username.errors %}
+            <span class="urp-error">
+              {% for error in form.username.errors %}<p>{{ error }}</p>{% endfor %}
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# Nombre y Apellidos #}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
+        <div>
+          <label for="first_name" class="urp-label">Nombre <span class="text-red-500">*</span></label>
+          <input type="text" name="first_name" id="first_name" placeholder="Nombre" required
+                 pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+"
+                 class="urp-input w-full" />
+          {% if form.first_name.errors %}
+            <span class="urp-error">
+              {% for error in form.first_name.errors %}<p>{{ error }}</p>{% endfor %}
+            </span>
+          {% endif %}
+        </div>
+        <div>
+          <label for="last_name" class="urp-label">Apellidos <span class="text-red-500">*</span></label>
+          <input type="text" name="last_name" id="last_name" placeholder="Apellidos" required
+                 pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+"
+                 class="urp-input w-full" />
+          {% if form.last_name.errors %}
+            <span class="urp-error">
+              {% for error in form.last_name.errors %}<p>{{ error }}</p>{% endfor %}
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# Email y Cargo #}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
+        <div>
+          <label for="email" class="urp-label">Correo <span class="text-red-500">*</span></label>
+          <input type="email" name="email" id="email"
+                 placeholder="usuario@example.com" required
+                 class="urp-input w-full" />
+          {% if form.email.errors %}
+            <span class="urp-error">
+              {% for error in form.email.errors %}<p>{{ error }}</p>{% endfor %}
+            </span>
+          {% endif %}
+        </div>
+        <div>
+          <label for="group" class="urp-label">Cargo <span class="text-red-500">*</span></label>
+          <select name="group" id="group" required class="urp-input w-full">
+            <option value="" disabled selected>Seleccione el Cargo</option>
+            {% for singular_group, group_id in singular_groups %}
+              <option value="{{ group_id }}">{{ singular_group }}</option>
+            {% endfor %}
+          </select>
+          <span id="group-error" class="urp-error hidden">Seleccione un cargo</span>
+        </div>
+      </div>
+
+      {# Contraseñas #}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-3">
+        <div>
+          <label for="password1" class="urp-label">Contraseña <span class="text-red-500">*</span></label>
+          <input type="password" name="password1" id="password1" required minlength="12"
+                 placeholder="Contraseña" autocomplete="new-password"
+                 class="urp-input w-full" />
+          {% if form.password1.errors %}
+            <span class="urp-error">
+              {% for error in form.password1.errors %}<p>{{ error }}</p>{% endfor %}
+            </span>
+          {% endif %}
+        </div>
+        <div>
+          <label for="password2" class="urp-label">Confirmar Contraseña <span class="text-red-500">*</span></label>
+          <input type="password" name="password2" id="password2" required minlength="12"
+                 placeholder="Confirmar Contraseña" autocomplete="new-password"
+                 class="urp-input w-full" />
+          {% if form.password2.errors %}
+            <span class="urp-error">
+              {% for error in form.password2.errors %}<p>{{ error }}</p>{% endfor %}
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# Requisitos contraseña #}
+      <ul class="list-disc ml-5 space-y-1 text-xs sm:text-sm text-gray-500 mb-5" id="password-requirements">
+        <li id="req-length">Mínimo <strong>12</strong> caracteres</li>
+        <li id="req-uppercase">Una letra mayúscula</li>
+        <li id="req-lowercase">Una letra minúscula</li>
+        <li id="req-number">Al menos un número</li>
+        <li id="req-special">Un carácter especial (@, #, $, %, etc.)</li>
+        <li id="req-match" class="hidden">Las contraseñas deben coincidir</li>
+      </ul>
+
+      {# Botones #}
+      <div class="flex flex-col sm:flex-row gap-3 mt-4">
+        <a href="{% url 'profile_list' %}"
+           class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm py-3 px-3 uppercase rounded-lg
+                  text-center flex-1 flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Regresar
+        </a>
+        <button type="submit"
+                class="bg-red-900 hover:bg-red-800 text-white text-sm py-3 px-3 uppercase rounded-lg flex-1">
+          Guardar Nuevo Usuario
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<style>
+  #user-register-page .urp-label{
+    @apply block text-sm font-semibold text-gray-700 mb-1;
+  }
+  #user-register-page .urp-input{
+    @apply bg-gray-100 border border-gray-300 rounded-lg px-3 py-2.5 text-sm sm:text-base text-gray-800;
+  }
+  #user-register-page .urp-error{
+    @apply text-red-500 text-xs mt-1 block;
+  }
+</style>
+
+<script>
+  const URP = (() => {
+    const root = document.getElementById('user-register-page');
+    if (!root) return { validateForm: () => true };
+
+    const pwd1 = root.querySelector('#password1');
+    const pwd2 = root.querySelector('#password2');
+    const group = root.querySelector('#group');
+
+    const reqs = {
+      length:    root.querySelector('#req-length'),
+      uppercase: root.querySelector('#req-uppercase'),
+      lowercase: root.querySelector('#req-lowercase'),
+      number:    root.querySelector('#req-number'),
+      special:   root.querySelector('#req-special'),
+      match:     root.querySelector('#req-match'),
+    };
+
+    function toggle(el, ok) {
+      el.classList.toggle('text-green-500', ok);
+      el.classList.toggle('text-gray-500', !ok);
+      el.classList.remove('hidden');
+    }
+
+    function refresh() {
+      const v1 = pwd1.value, v2 = pwd2.value;
+      toggle(reqs.length,    v1.length >= 12);
+      toggle(reqs.uppercase, /[A-Z]/.test(v1));
+      toggle(reqs.lowercase, /[a-z]/.test(v1));
+      toggle(reqs.number,    /\d/.test(v1));
+      toggle(reqs.special,   /[@#$%^&*!]/.test(v1));
+      reqs.match.classList.toggle('hidden', !v2.length);
+      toggle(reqs.match, v1 === v2 && v2.length > 0);
+    }
+
+    pwd1.addEventListener('input', refresh);
+    pwd2.addEventListener('input', refresh);
+    refresh();
+
+    function validateForm () {
+      const v1 = pwd1.value, v2 = pwd2.value;
+      const cargoOk = !!group.value;
+      const groupError = root.querySelector('#group-error');
+      if (groupError) groupError.classList.toggle('hidden', cargoOk);
+
+      const ok = v1.length >= 12 && /[A-Z]/.test(v1) && /[a-z]/.test(v1) &&
+                 /\d/.test(v1) && /[@#$%^&*!]/.test(v1) && v1 === v2 && cargoOk;
+      if (!ok) refresh();
+      return ok;
+    }
+
+    return { validateForm };
+  })();
+</script>
+{% endblock %}
