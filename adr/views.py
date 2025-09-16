@@ -535,6 +535,32 @@ def _enviar_notificacion(asunto: str, mensaje: str, destinatarios: list[str] | t
         pass
 
 
+<<<<<<< HEAD
+=======
+   
+# --- Helper seguro para enviar correos (no rompe si falla) ---
+def _enviar_notificacion(asunto: str, mensaje: str, destinatarios: list[str] | tuple[str, ...] | None):
+    """
+    Envía un correo simple. Si no hay destinatarios o falla, no levanta excepción.
+    Usa DEFAULT_FROM_EMAIL si está definido.
+    """
+    try:
+        if not destinatarios:
+            return  # sin destinatarios, no envía
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
+        send_mail(
+            subject=asunto,
+            message=mensaje,
+            from_email=from_email,
+            recipient_list=list(destinatarios),
+            fail_silently=True,  # importantísimo para no romper el flujo
+        )
+    except Exception:
+        # No hacemos nada: el borrado no debe fallar por el correo
+        pass
+
+
+>>>>>>> 03a10d3 (agregando cosas)
 class ProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = User
     success_url = reverse_lazy('profile_list')
