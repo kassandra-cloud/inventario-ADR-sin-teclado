@@ -83,7 +83,7 @@ from django.contrib.auth.views import PasswordChangeView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from .forms import LoginForm,UserUpdateForm
-
+from adr.utils import enviar_notificacion_asunto
 
 #logica para que el usuario pueda editar su foto
 @login_required
