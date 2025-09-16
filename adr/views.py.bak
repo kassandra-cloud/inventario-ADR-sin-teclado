@@ -535,6 +535,8 @@ def _enviar_notificacion(asunto: str, mensaje: str, destinatarios: list[str] | t
         pass
 
 
+<<<<<<< HEAD
+=======
    
 # --- Helper seguro para enviar correos (no rompe si falla) ---
 def _enviar_notificacion(asunto: str, mensaje: str, destinatarios: list[str] | tuple[str, ...] | None):
@@ -558,7 +560,7 @@ def _enviar_notificacion(asunto: str, mensaje: str, destinatarios: list[str] | t
         pass
 
 
-
+>>>>>>> 03a10d3 (agregando cosas)
 class ProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = User
     success_url = reverse_lazy('profile_list')
