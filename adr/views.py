@@ -91,12 +91,11 @@ def my_profile(request):
     user = request.user
     profile = user.profile
 
-    # Instancias por defecto (GET o si hay errores)
     uform = UserUpdateForm(instance=user)
     pform = ProfileImageForm(instance=profile)
 
     if request.method == "POST":
-        # ¿Cuál botón se apretó?
+        # 1) Guardar datos
         if "save_user" in request.POST:
             uform = UserUpdateForm(request.POST, instance=user)
             if uform.is_valid():
@@ -106,6 +105,7 @@ def my_profile(request):
             else:
                 messages.error(request, "Revisa los campos del formulario.")
 
+        # 2) Guardar foto
         elif "save_photo" in request.POST:
             pform = ProfileImageForm(request.POST, request.FILES, instance=profile)
             if pform.is_valid():
@@ -115,15 +115,26 @@ def my_profile(request):
             else:
                 messages.error(request, "No se pudo actualizar la foto. Revisa el archivo.")
 
-    # Para el navbar por grupo (tu código actual)
+        # 3) **ELIMINAR foto**  <-- Faltaba esto
+        elif "delete_image" in request.POST:
+            if profile.image:
+                # borra el archivo del disco y limpia el campo
+                profile.image.delete(save=False)
+                profile.image = None
+                profile.save()
+                messages.success(request, "La foto de perfil fue eliminada.")
+            else:
+                messages.info(request, "No tenías una foto subida.")
+            return redirect("my_profile")
+
     group = request.user.groups.first().name if request.user.groups.exists() else "Invitado"
 
     return render(
         request,
         "profiles/my_profile.html",
         {
-            "user_form": uform,          # <- NUEVO
-            "photo_form": pform,         # <- renombrado para claridad
+            "user_form": uform,
+            "photo_form": pform,
             "user_profile": user,
             "group_name_singular": group,
         },
@@ -300,69 +311,84 @@ class AddUserView(UserPassesTestMixin, LoginRequiredMixin, CreateView):
 
     def test_func(self):
         """Verifica que el usuario sea ADR"""
-        return self.request.user.groups.first().name == 'ADR'
+        first_group = self.request.user.groups.first()
+        return bool(first_group and first_group.name == 'ADR')
 
     def handle_no_permission(self):
         """Redirecciona a error si no tiene permisos"""
         return redirect('error')
 
     def get_context_data(self, **kwargs):
-        """Agrega grupos al contexto similar a ProfileUpdateView"""
+        """Agrega grupos al contexto"""
         context = super().get_context_data(**kwargs)
-        # Obtener los grupos como en ProfileUpdateView
         context['singular_groups'] = Group.objects.values_list('name', 'id')
         return context
-    
+
     def form_valid(self, form):
-        """Procesa el formulario válido y envía notificación por correo"""
+        """Crea el usuario, marca 'create_by_adr=True', asigna grupo y notifica"""
         try:
-            print("Datos limpiados:", form.cleaned_data)  # Esto mostrará todos los datos que llegan
-            group_id = self.request.POST['group']
-            group = Group.objects.get(id=group_id)
-            user = form.save(commit=False)
-
-            # Asegura que se asignen estos campos
-            user.first_name = form.cleaned_data.get('first_name', '')
-            user.last_name = form.cleaned_data.get('last_name', '')
-            user.set_password(form.cleaned_data.get('password1', ''))
-
-            if group_id != '2':  # Esto parece ser específico, tal vez para identificar ciertos roles
-                user.is_staff = True
-
-            user.save()
-            user.groups.clear()
-            user.groups.add(group)
-
-            # Enviar notificación por correo
-            accion = "Nuevo Usuario Agregado"
-            mensaje = f"""
-            El usuario {self.request.user.get_full_name()} ha agregado un nuevo usuario al sistema.
-
-            Acción: {accion}
-            Nombre Completo del Usuario Agregado: {user.first_name} {user.last_name}
-            Nombre de Usuario: {user.username}
-            Grupo Asignado: {group.name}
-            """
+            group_id = self.request.POST.get('group')
+            if not group_id:
+                messages.error(self.request, 'Debe seleccionar un grupo para el usuario.')
+                return self.form_invalid(form)
 
             try:
+                group = Group.objects.get(id=group_id)
+            except Group.DoesNotExist:
+                messages.error(self.request, 'El grupo seleccionado no existe.')
+                return self.form_invalid(form)
+
+            with transaction.atomic():
+                # 1) Crear usuario
+                user = form.save(commit=False)
+                user.first_name = form.cleaned_data.get('first_name', '')
+                user.last_name  = form.cleaned_data.get('last_name', '')
+                # Asegura setear una contraseña válida (viene de tu form password1)
+                raw_password = form.cleaned_data.get('password1', '')
+                user.set_password(raw_password)
+
+                # (opcional) regla para is_staff según grupos
+                # ajusta a tu lógica real en lugar del id fijo '2'
+                if group.name in ['ADR', 'Operadores ADR']:
+                    user.is_staff = True
+
+                user.save()
+
+                # 2) Asignar grupo
+                user.groups.clear()
+                user.groups.add(group)
+
+                # 3) Crear/actualizar Profile y marcar para cambio de password
+                profile, _ = Profile.objects.get_or_create(user=user)
+                profile.create_by_adr = True   # ← clave para forzar cambio al primer login
+                profile.save(update_fields=['create_by_adr'])
+
+            # 4) Notificación por correo (opcional)
+            try:
+                accion = "Nuevo Usuario Agregado"
+                mensaje = f"""
+El usuario {self.request.user.get_full_name()} ha agregado un nuevo usuario al sistema.
+
+Acción: {accion}
+Nombre Completo del Usuario Agregado: {user.first_name} {user.last_name}
+Nombre de Usuario: {user.username}
+Grupo Asignado: {group.name}
+"""
                 enviar_notificacion_asunto(
                     asunto="Nuevo Usuario Registrado en el Sistema",
                     mensaje=mensaje,
-                    destinatarios=settings.EMAIL_RECIPIENTS
+                    destinatarios=getattr(settings, 'EMAIL_RECIPIENTS', [])
                 )
-                print("Correo de creación de usuario enviado.")
             except Exception as e:
-                print(f"Error al enviar el correo de notificación: {str(e)}")
-                messages.error(self.request, 'Error al enviar el correo de notificación.')
+                # No detengas la creación por fallo de correo
+                messages.warning(self.request, f'Usuario creado, pero falló el envío de correo: {str(e)}')
 
-            messages.success(self.request, 'Usuario creado exitosamente')
-            return super().form_valid(form)
+            messages.success(self.request, 'Usuario creado exitosamente.')
+            return redirect(self.success_url)
 
         except Exception as e:
             messages.error(self.request, f'Error al crear el usuario: {str(e)}')
             return self.form_invalid(form)
-
-
 
 # -------- VISTAS DE PERFILES --------
 
@@ -513,9 +539,28 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('profile_list')
 
 
+# --- Helper seguro para enviar correos (no rompe si falla) ---
+def _enviar_notificacion(asunto: str, mensaje: str, destinatarios: list[str] | tuple[str, ...] | None):
+    """
+    Envía un correo simple. Si no hay destinatarios o falla, no levanta excepción.
+    Usa DEFAULT_FROM_EMAIL si está definido.
+    """
+    try:
+        if not destinatarios:
+            return  # sin destinatarios, no envía
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
+        send_mail(
+            subject=asunto,
+            message=mensaje,
+            from_email=from_email,
+            recipient_list=list(destinatarios),
+            fail_silently=True,  # importantísimo para no romper el flujo
+        )
+    except Exception:
+        # No hacemos nada: el borrado no debe fallar por el correo
+        pass
 
-    
-@add_group_name_to_context
+
 class ProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = User
     success_url = reverse_lazy('profile_list')
@@ -537,52 +582,51 @@ class ProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return context
 
     def delete(self, request, *args, **kwargs):
-        """Procesa la eliminación de un usuario y envía notificación"""
+        """Procesa la eliminación de un usuario y envía notificación (sin romper si el correo falla)"""
         try:
-            # Obtener el usuario que se quiere eliminar
             self.object = self.get_object()
+
+            # --- Evitar auto-eliminación (opcional, recomendado) ---
+            if self.object == request.user:
+                messages.error(request, 'No puedes eliminar tu propia cuenta.')
+                return redirect(self.success_url)
+
             nombre_usuario = self.object.username
-            nombre_completo = f"{self.object.first_name} {self.object.last_name}"
+            nombre_completo = f"{self.object.first_name} {self.object.last_name}".strip()
             grupo = self.object.groups.first().name if self.object.groups.exists() else "Sin grupo asignado"
-            success_url = self.get_success_url()
 
             # Eliminar el usuario
             self.object.delete()
 
-            # Enviar notificación por correo
+            # Preparar y enviar notificación (si hay destinatarios configurados)
             accion = "Eliminación de Perfil"
-            mensaje = f"""
-            El usuario {request.user.get_full_name()} ha eliminado el siguiente perfil de usuario:
+            mensaje = (
+                f"El usuario {request.user.get_full_name() or request.user.username} ha eliminado "
+                f"el siguiente perfil de usuario:\n\n"
+                f"Acción: {accion}\n"
+                f"Nombre de Usuario Eliminado: {nombre_usuario}\n"
+                f"Nombre Completo: {nombre_completo or '-'}\n"
+                f"Grupo Asignado: {grupo}\n"
+            )
 
-            Acción: {accion}
-            Nombre de Usuario Eliminado: {nombre_usuario}
-            Nombre Completo: {nombre_completo}
-            Grupo Asignado: {grupo}
-            """
-
-            # Enviar el correo independientemente del tipo de solicitud (normal o AJAX)
-            enviar_notificacion_asunto(
+            # Puedes usar una lista en settings: EMAIL_RECIPIENTS = ["soporte@tudominio.cl", ...]
+            destinatarios = getattr(settings, "EMAIL_RECIPIENTS", None)
+            _enviar_notificacion(
                 asunto="Eliminación de Perfil de Usuario",
                 mensaje=mensaje,
-                destinatarios=settings.EMAIL_RECIPIENTS
+                destinatarios=destinatarios,
             )
-            print("Correo de eliminación de perfil enviado.")
-            
-            # Mostrar mensaje de éxito
+
             messages.success(self.request, f'Usuario {nombre_usuario} eliminado exitosamente')
-            return HttpResponseRedirect(success_url)
+            return HttpResponseRedirect(self.get_success_url())
 
         except Exception as e:
-            messages.error(self.request, f'Error al eliminar usuario: {str(e)}')
+            messages.error(self.request, f'Error al eliminar usuario: {e}')
             return redirect('profile_list')
 
     def post(self, request, *args, **kwargs):
-        """
-        Sobreescribimos post para manejar las solicitudes AJAX si es necesario
-        """
+        # El botón del template hace POST, así que delegamos en delete()
         return self.delete(request, *args, **kwargs)
-
-
 
 
 
@@ -621,36 +665,23 @@ class ProfilePasswordChangeView(PasswordChangeView):
         messages.error(self.request, 'Las contraseñas no coinciden o no cumple el estándar de seguridad')
         return super().form_invalid(form)
 
-
 @add_group_name_to_context
 class CustomLoginView(LoginView):
     def form_invalid(self, form):
-        """Muestra un mensaje de error cuando los datos de inicio de sesión son incorrectos"""
         messages.error(self.request, 'Usuario o contraseña incorrectos. Por favor, intente nuevamente.')
         return super().form_invalid(form)
 
     def form_valid(self, form):
-        """Manejo de inicio de sesión exitoso"""
-        response = super().form_valid(form)
+        user = form.get_user()
+        profile = getattr(user, "profile", None)
 
-        # Aquí verificamos si el usuario tiene el perfil y la propiedad 'create_by_adr' 
-        profile = self.request.user.profile
-        if profile.create_by_adr:
-            # Si 'create_by_adr' es True, redirigimos al cambio de contraseña
-            messages.warning(self.request, 'Bienvenido, debe cambiar su contraseña ahora!')
-            response['Location'] = reverse_lazy('profile_password_change')
-            response.status_code = 302  # Cambio de redirección
-        else:
-            # Si no es necesario cambiar la contraseña, redirigimos normalmente
-            messages.success(self.request, 'Inicio de sesión exitoso.')
-        
-        return response
+        if profile and profile.create_by_adr:
+            messages.warning(self.request, 'Bienvenido, debes cambiar tu contraseña ahora.')
+            return HttpResponseRedirect(reverse_lazy('profile_password_change'))
 
-    def get_success_url(self):
-        """Retorna la URL de éxito de inicio de sesión"""
-        return super().get_success_url()
-    
-    
+        resp = super().form_valid(form)
+        messages.success(self.request, 'Inicio de sesión exitoso.')
+        return resp
 
 # -------- VISTAS DE ALL IN ONE --------
 

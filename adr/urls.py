@@ -46,7 +46,7 @@ urlpatterns = [
     path('profile_list/', login_required(ProfileListView.as_view()), name="profile_list"),
     path("mi-perfil/", views.my_profile, name="my_profile"),
     path('profile_delete/<int:pk>/', login_required(ProfileDeleteView.as_view()), name='profile_delete'),
-     path("perfil/contraseña/cambiar/", UserPasswordChangeView.as_view(), name="password_change"),
+    path("perfil/contraseña/cambiar/", UserPasswordChangeView.as_view(), name="password_change"),
     # Páginas Principales
     path('', IndexView.as_view(), name="index"),
         # Nueva ruta
