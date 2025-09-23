@@ -1936,7 +1936,6 @@ class Edit_NotebooksView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 
 
-
 # -------- VISTAS DE MINI PC --------
 
 @add_group_name_to_context
@@ -3745,9 +3744,8 @@ class AllInOneAdminDetailView(DetailView):
 @add_group_name_to_context
 class NotebookDetailView(DetailView):
     model = Notebook
-    template_name = 'modulos/notebooks.html'
+    template_name = 'modulos/detalle_notebook.html'
     context_object_name = 'notebook'
-
 @add_group_name_to_context
 class MiniPCDetailView(LoginRequiredMixin, DetailView):
     model = MiniPC
@@ -3756,31 +3754,51 @@ class MiniPCDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        minipc_instance = self.get_object()
-        minipc_content_type = ContentType.objects.get_for_model(MiniPC)
-        historial_cambios = HistorialCambios.objects.filter(
-            content_type=minipc_content_type,
-            objeto_id=minipc_instance.pk
-        ).order_by('-fecha_cambio') # Ordenar por fecha descendente
-        context['historial_cambios'] = historial_cambios
+        minipc = self.object
+
+        # Según cómo guardas 'modelo' en HistorialCambios:
+        # - Si usas Clase.__name__ -> 'MiniPC'
+        # - Si usas _meta.model_name -> 'minipc'
+        context['historial_cambios'] = (
+            HistorialCambios.objects.filter(
+                Q(modelo=MiniPC.__name__) | Q(modelo=MiniPC._meta.model_name),
+                objeto_id=minipc.pk
+            ).order_by('-fecha_modificacion')
+        )
         return context
 
 @add_group_name_to_context
-class ProyectorDetailView(DetailView):
-    model = Proyectores
-    template_name = 'modulos/proyectores.html'
+class ProyectorDetailView(LoginRequiredMixin, DetailView):
+    model = Proyectores             # <-- si tu clase es Proyectores, cámbiala aquí
+    template_name = 'modulos/detalle_proyector.html'
     context_object_name = 'proyector'
 
-@add_group_name_to_context
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = self.object
+
+        # Tu HistorialCambios no tiene content_type ni fecha_cambio
+        context['historial_cambios'] = (
+            HistorialCambios.objects
+            .filter(
+                Q(modelo=self.model.__name__) | Q(modelo=self.model._meta.model_name),
+                objeto_id=obj.pk
+            )
+            .order_by('-fecha_modificacion')
+        )
+
+        # Para el botón "Volver al listado"
+        context['list_url_name'] = 'proyectores'
+        return context
+
 class BodegaADRDetailView(DetailView):
     model = BodegaADR
-    template_name = 'modulos/bodega_adr.html'
-    context_object_name = 'bodegaadr'
-
+    template_name = 'modulos/detalle_bodegaadr.html'   # ruta del template
+    context_object_name = 'bodega'                       # cómo se llamará en el template
 @add_group_name_to_context
 class AzoteaDetailView(DetailView):
     model = Azotea
-    template_name = 'modulos/azotea_adr.html'
+    template_name = 'modulos/detalle_azotea.html'
     context_object_name = 'azotea'
 
 

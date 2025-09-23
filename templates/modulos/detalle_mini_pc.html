@@ -121,7 +121,7 @@
 
         </div>
         <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
-            <a href="{% url 'minipc_list' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+            <a href="{% url 'mini_pc' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                 <i class="fas fa-arrow-left mr-2"></i>Volver al Listado
             </a>
             {% if request.user.groups.first.name == 'ADR' or request.user.groups.first.name == 'Operadores ADR' %}
