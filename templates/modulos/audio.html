@@ -13,11 +13,11 @@
 <div id="content" class="w-full max-w-screen-2xl mx-auto px-4 py-6 md:ml-72">
   <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-4">Inventario de Equipos de Audio</h1>
 
-  {# ---- Controles (BUSCAR + VER TODOS al lado) ---- #}
+  {# ---- Controles (BUSCAR + VER TODOS + FILTROS + EXCEL alineados) ---- #}
   <div class="mb-6">
     <form method="get" class="flex flex-col gap-3 md:flex-row md:items-end w-full">
 
-      {# Buscar + botón lupa #}
+      {# Buscar + botón lupa + Ver todos #}
       <div class="flex flex-col">
         <label for="search" class="font-semibold text-gray-700">Buscar:</label>
         <div class="flex items-stretch">
@@ -33,7 +33,6 @@
             </button>
           </div>
 
-          {# Botón VER TODOS con icono grid (ruta fija a la lista) #}
           {% if list_url_name %}
             <a href="{% url list_url_name %}"
                class="ml-2 inline-flex items-center justify-center px-4 h-10 rounded bg-zinc-800 text-white shadow hover:bg-zinc-900 whitespace-nowrap">
@@ -54,6 +53,7 @@
         </div>
       </div>
 
+      {# Filtro Estado #}
       <div class="flex flex-col">
         <label for="estado" class="font-semibold text-gray-700">Estado</label>
         <select
@@ -67,8 +67,9 @@
         </select>
       </div>
 
+      {# Botón Filtrar + Limpiar #}
       <div class="flex items-end gap-3">
-        <button type="submit" class="w-full sm:w-auto bg-red-700 hover:bg-red-600 text-white px-4 py-2 rounded transition">Filtrar</button>
+        <button type="submit" class="w-full sm:w-auto bg-red-700 hover:bg-red-600 text-white px-4 h-10 leading-10 rounded transition">Filtrar</button>
         {% if request.GET %}
           {% if list_url_name %}
             <a href="{% url list_url_name %}" class="text-sm text-gray-600 hover:underline">Limpiar</a>
@@ -77,14 +78,21 @@
           {% endif %}
         {% endif %}
       </div>
-    </form>
 
-    {% if page_obj %}
-    <div class="col-span-1 flex flex-col sm:flex-row gap-3 md:justify-end">
-      <a href="{% url 'descargar_excel' 'audio' %}" class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 py-2 rounded shadow-sm">Descargar Excel</a>
-      <a href="{% url 'upload_excel_audio' %}" class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 py-2 rounded shadow-sm">Subir Excel</a>
-    </div>
-    {% endif %}
+      {# === Botones verdes alineados a la derecha, MISMA FILA === #}
+      {% if page_obj %}
+      <div class="flex gap-3 md:ml-auto">
+        <a href="{% url 'descargar_excel' 'audio' %}"
+           class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 h-10 leading-10 rounded shadow-sm">
+          Descargar Excel
+        </a>
+        <a href="{% url 'upload_excel_audio' %}"
+           class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 h-10 leading-10 rounded shadow-sm">
+          Subir Excel
+        </a>
+      </div>
+      {% endif %}
+    </form>
   </div>
 
   {% if page_obj %}
@@ -116,9 +124,9 @@
         </thead>
         <tbody class="divide-y divide-gray-200 text-sm">
           {% for audio in page_obj %}
-          <tr class="hover:bg-gray-50 align-top">
-            <td class="px-1 py-1 break-words text-center">{{ audio.activo|capfirst }}</td>
-            <td class="px-1 py-1 text-center">
+          <tr class="hover:bg-gray-50">
+            <td class="px-1 py-2 text-center">{{ audio.activo|capfirst }}</td>
+            <td class="px-1 py-2 text-center">
               {% if audio.estado == 'Operativo' %}
                 <span class="px-1 py-0.5 bg-green-100 text-green-800 rounded-full text-xs">Operativo</span>
               {% elif audio.estado == 'Dañado' %}
@@ -127,47 +135,40 @@
                 <span class="px-1 py-0.5 bg-red-100 text-red-800 rounded-full text-xs">De Baja</span>
               {% endif %}
             </td>
-            <td class="px-1 py-1 break-words text-center">{{ audio.marca|capfirst }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ audio.modelo|capfirst }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ audio.n_serie }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ audio.unive }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ audio.bdo }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ audio.netbios }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ audio.ubicacion }}</td>
-            <td class="px-1 py-1 break-words text-center">
-              {{ audio.creado_por.get_full_name|default:audio.creado_por.username }}
-            </td>
-            <td class="px-1 py-1 break-words text-center">{{ audio.fecha_creacion|date:"d/m/Y" }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ audio.fecha_modificacion|date:"d/m/Y" }}</td>
+            <td class="px-1 py-2 text-center">{{ audio.marca|capfirst }}</td>
+            <td class="px-1 py-2 text-center">{{ audio.modelo|capfirst }}</td>
+            <td class="px-1 py-2 text-center">{{ audio.n_serie }}</td>
+            <td class="px-1 py-2 text-center">{{ audio.unive }}</td>
+            <td class="px-1 py-2 text-center">{{ audio.bdo }}</td>
+            <td class="px-1 py-2 text-center">{{ audio.netbios }}</td>
+            <td class="px-1 py-2 text-center">{{ audio.ubicacion }}</td>
+            <td class="px-1 py-2 text-center">{{ audio.creado_por.get_full_name|default:audio.creado_por.username }}</td>
+            <td class="px-1 py-2 text-center">{{ audio.fecha_creacion|date:"d/m/Y" }}</td>
+            <td class="px-1 py-2 text-center">{{ audio.fecha_modificacion|date:"d/m/Y" }}</td>
 
             {% if group_name_singular == 'ADR' or group_name_singular == 'Operador ADR' %}
-            <td class="px-1 py-1 break-words text-center">
+            <td class="px-1 py-2 text-center">
               <div class="inline-flex items-center justify-center gap-2">
-                <!-- Ver (píldora azul unificada) -->
                 <a href="{% url 'detalle_audio' audio.pk %}"
-                   class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
-                          bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md"
+                   class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md"
                    title="Ver">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 12s4.5-7 10-7 10 7 10 7-4.5 7-10 7-10-7-10-7z"/>
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                 </a>
-                <!-- Editar -->
                 <a href="{% url 'edit_audio' audio.pk %}"
-                   class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
-                          bg-gradient-to-br from-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-800 shadow-md"
+                   class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white bg-gradient-to-br from-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-800 shadow-md"
                    title="Editar">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536L9 18H5.5V14.5z"/>
                   </svg>
                 </a>
-                <!-- Eliminar -->
-                <form action="{% url 'delete_audio' 'audio' audio.pk %}" method="post" onsubmit="return confirm('¿Eliminar este registro?');" class="inline">
+                <form action="{% url 'delete_audio' 'audio' audio.pk %}" method="post"
+                      onsubmit="return confirm('¿Eliminar este registro?');" class="inline">
                   {% csrf_token %}
                   <button type="submit"
-                          class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
-                                 bg-gradient-to-br from-rose-600 to-rose-800 hover:from-rose-700 hover:to-rose-900 shadow-md"
+                          class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white bg-gradient-to-br from-rose-600 to-rose-800 hover:from-rose-700 hover:to-rose-900 shadow-md"
                           title="Eliminar">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7"/>
@@ -177,11 +178,9 @@
               </div>
             </td>
             {% else %}
-            <td class="px-1 py-1 break-words text-center">
-              <!-- Ver (solo ojo) para perfiles sin permisos) -->
+            <td class="px-1 py-2 text-center">
               <a href="{% url 'detalle_audio' audio.pk %}"
-                 class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
-                        bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md"
+                 class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md"
                  title="Ver">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 12s4.5-7 10-7 10 7 10 7-4.5 7-10 7-10-7-10-7z"/>
@@ -207,14 +206,11 @@
         <div class="font-semibold text-gray-900 text-sm">
           {{ audio.marca|capfirst }} {{ audio.modelo|capfirst }}
         </div>
-        <!-- Ver (móvil, píldora azul) -->
         <a href="{% url 'detalle_audio' audio.pk %}"
-           class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
-                  bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md"
+           class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md"
            title="Ver">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 12s4.5-7 10-7 10 7 10 7-4.5 7-10 7-10-7-10-7z"/>
-            <circle cx="12" cy="12" r="3"></circle>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 12s4.5-7 10-7 10 7 10 7-4.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"></circle>
           </svg>
         </a>
       </div>
@@ -229,21 +225,17 @@
 
       {% if group_name_singular == 'ADR' or group_name_singular == 'Operador ADR' %}
       <div class="mt-3 flex items-center gap-2">
-        <!-- Editar -->
         <a href="{% url 'edit_audio' audio.pk %}"
-           class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
-                  bg-gradient-to-br from-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-800 shadow-md"
+           class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white bg-gradient-to-br from-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-800 shadow-md"
            title="Editar">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536L9 18H5.5V14.5z"/>
           </svg>
         </a>
-        <!-- Eliminar -->
         <form action="{% url 'delete_audio' 'audio' audio.pk %}" method="post" onsubmit="return confirm('¿Eliminar este registro?');">
           {% csrf_token %}
           <button type="submit"
-                  class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
-                         bg-gradient-to-br from-rose-600 to-rose-800 hover:from-rose-700 hover:to-rose-900 shadow-md"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white bg-gradient-to-br from-rose-600 to-rose-800 hover:from-rose-700 hover:to-rose-900 shadow-md"
                   title="Eliminar">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7"/>

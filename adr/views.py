@@ -4781,19 +4781,18 @@ class UploadExcelAllInOneAdmView(LoginRequiredMixin, UserPassesTestMixin, FormVi
 
 import re
 from decimal import Decimal, InvalidOperation # Asegúrate que estas importaciones estén al inicio del archivo si no lo están ya.
-
 def buscar_global(request):
     query_original_case_sensitive = request.GET.get("q", "").strip()
-    if not query_original_case_sensitive: # Si 'q' está vacío o no existe, intentar con 'search'
+    if not query_original_case_sensitive:  # Si 'q' está vacío o no existe, intentar con 'search'
         query_original_case_sensitive = request.GET.get("search", "").strip()
     
-    print(f"[DEBUG] buscar_global: query_original_case_sensitive = '{query_original_case_sensitive}'") # DEBUG
+    print(f"[DEBUG] buscar_global: query_original_case_sensitive = '{query_original_case_sensitive}'")  # DEBUG
     query_original = query_original_case_sensitive.lower()
-    print(f"[DEBUG] buscar_global: query_original (lowercase) = '{query_original}'") # DEBUG
+    print(f"[DEBUG] buscar_global: query_original (lowercase) = '{query_original}'")  # DEBUG
     
     query_sin_prefijo_scanner = query_original
-    if re.match(r"^[a-z]{3}", query_original): # ej., "ser123" -> "123"
-         query_sin_prefijo_scanner = query_original[3:]
+    if re.match(r"^[a-z]{3}", query_original):  # ej., "ser123" -> "123"
+        query_sin_prefijo_scanner = query_original[3:]
 
     # Mapeo de modelos a sus nombres plurales y nombres de URL para detalles
     # El 'url_detalle_name' es crucial para el enlace 'Ver' en la plantilla.
@@ -4813,7 +4812,7 @@ def buscar_global(request):
     resultados_por_modelo = []
     total_resultados = 0
 
-    if query_original_case_sensitive: # Solo buscar si hay un término de búsqueda
+    if query_original_case_sensitive:  # Solo buscar si hay un término de búsqueda
         for info in modelos_info:
             modelo = info['modelo_class']
             q_expressions = Q()
@@ -4827,33 +4826,36 @@ def buscar_global(request):
                 if hasattr(modelo, campo):
                     q_expressions |= Q(**{f"{campo}__icontains": query_original})
             
-            # La búsqueda por 'ubicacion' (antes 'estado_activo' en Azotea) ya está cubierta por campos_texto_generales.
-            # Por lo tanto, la condición específica para Azotea y estado_activo se elimina.
-
             if hasattr(modelo, 'bdo'):
-                q_expressions |= Q(bdo__icontains=query_original) # Revertido a solo icontains
-
+                q_expressions |= Q(bdo__icontains=query_original)
 
             if hasattr(modelo, 'n_serie'):
                 q_n_serie = Q(n_serie__icontains=query_original)
-                if query_sin_prefijo_scanner != query_original and query_sin_prefijo_scanner: # Asegurar que no sea vacío
+                if query_sin_prefijo_scanner != query_original and query_sin_prefijo_scanner:  # Asegurar que no sea vacío
                     q_n_serie |= Q(n_serie__icontains=query_sin_prefijo_scanner)
                 q_expressions |= q_n_serie
                 
             if hasattr(modelo, 'creado_por'):
-                q_expressions |= Q(creado_por__first_name__icontains=query_original) | \
-                                 Q(creado_por__last_name__icontains=query_original) | \
-                                 Q(creado_por__username__icontains=query_original)
+                q_expressions |= (
+                    Q(creado_por__first_name__icontains=query_original) |
+                    Q(creado_por__last_name__icontains=query_original) |
+                    Q(creado_por__username__icontains=query_original)
+                )
             
-            if q_expressions: # Solo filtrar si se construyó alguna expresión Q
-                resultados_modelo = modelo.objects.filter(q_expressions)
+            if q_expressions:  # Solo filtrar si se construyó alguna expresión Q
+                try:
+                    resultados_modelo = modelo.objects.select_related('creado_por').filter(q_expressions)
+                except Exception:
+                    resultados_modelo = modelo.objects.filter(q_expressions)
+
                 if resultados_modelo.exists():
                     resultados_por_modelo.append({
                         'nombre_plural': info['nombre_plural'],
-                        'resultados': list(resultados_modelo), # Convertir a lista para la plantilla
+                        'resultados': list(resultados_modelo),  # Convertir a lista para la plantilla
                         'modelo_name': info['modelo_name']
                     })
                     total_resultados += resultados_modelo.count()
+
     
     # Las condiciones if/elif pass anteriores fueron eliminadas por redundancia.
     # La plantilla maneja 'resultados_por_modelo' vacío.

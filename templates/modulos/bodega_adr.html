@@ -13,11 +13,11 @@
 <div id="content" class="w-full max-w-screen-2xl mx-auto px-4 py-6 md:ml-72">
   <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-4">Bodega ADR</h1>
 
-  {# ---- Controles (BUSCAR + VER TODOS al lado) ---- #}
+  {# ---- Controles (BUSCAR + VER TODOS + EXCEL alineados) ---- #}
   <div class="mb-6">
     <form method="get" class="flex flex-col gap-3 md:flex-row md:items-end w-full">
 
-      {# Buscar + botón lupa #}
+      {# Buscar + botón lupa + Ver todos #}
       <div class="flex flex-col">
         <label for="search" class="font-semibold text-gray-700">Buscar:</label>
         <div class="flex items-stretch">
@@ -44,21 +44,29 @@
         </div>
       </div>
 
+      {# Limpiar (solo si hay querystring) #}
       <div class="flex items-end">
         {% if request.GET %}
           <a href="{{ request.path }}" class="text-sm text-gray-600 hover:underline">Limpiar</a>
         {% endif %}
       </div>
-    </form>
 
-    {% if bodegas_adr or page_obj %}
-    <div class="col-span-1 flex flex-col sm:flex-row gap-3 md:justify-end mt-4">
-      <a href="{% url 'descargar_excel' 'bodegaadr' %}"
-         class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 py-2 rounded shadow-sm">Descargar Excel</a>
-      <a href="{% url 'upload_excel_bodega_adr' %}"
-         class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 py-2 rounded shadow-sm">Subir Excel</a>
-    </div>
-    {% endif %}
+      {# === Botones verdes alineados a la derecha, MISMA FILA === #}
+      {% with items=page_obj|default:bodegas_adr %}
+      {% if items %}
+      <div class="flex gap-3 md:ml-auto">
+        <a href="{% url 'descargar_excel' 'bodegaadr' %}"
+           class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 h-10 leading-10 rounded shadow-sm">
+          Descargar Excel
+        </a>
+        <a href="{% url 'upload_excel_bodega_adr' %}"
+           class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 h-10 leading-10 rounded shadow-sm">
+          Subir Excel
+        </a>
+      </div>
+      {% endif %}
+      {% endwith %}
+    </form>
   </div>
 
   {% with items=page_obj|default:bodegas_adr %}
@@ -178,7 +186,6 @@
 
             <td class="px-1 py-1 text-center">
               <div class="inline-flex items-center justify-center gap-1">
-                <!-- Ver -->
                 <a href="{% url 'detalle_bodegaadr' b.pk %}"
                    class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
                           bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md"
@@ -192,7 +199,6 @@
                 </a>
 
                 {% if group_name_singular == 'ADR' or group_name_singular == 'Operador ADR' %}
-                <!-- Editar -->
                 <a href="{% url 'edit_bodega_adr' b.pk %}"
                    class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
                           bg-gradient-to-br from-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-800 shadow-md"
@@ -201,7 +207,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536L9 18H5.5V14.5z"/>
                   </svg>
                 </a>
-                <!-- Eliminar -->
                 <form action="{% url 'delete_bodega_adr' 'bodegaadr' b.pk %}" method="post"
                       onsubmit="return confirm('¿Está seguro que desea eliminar este registro?');" class="inline">
                   {% csrf_token %}

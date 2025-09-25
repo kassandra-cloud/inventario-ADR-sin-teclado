@@ -13,11 +13,11 @@
 <div id="content" class="w-full max-w-screen-2xl mx-auto px-4 py-6 md:ml-72">
   <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-4">Inventario de Tablets</h1>
 
-  {# ---- Controles (BUSCAR + VER TODOS al lado) ---- #}
+  {# ---- Controles (BUSCAR + VER TODOS + FILTROS + EXCEL alineados) ---- #}
   <div class="mb-6">
     <form method="get" class="flex flex-col gap-3 md:flex-row md:items-end w-full">
 
-      {# Buscar + botón lupa #}
+      {# Buscar + botón lupa + Ver todos #}
       <div class="flex flex-col">
         <label for="search" class="font-semibold text-gray-700">Buscar:</label>
         <div class="flex items-stretch">
@@ -54,6 +54,7 @@
         </div>
       </div>
 
+      {# Filtro Estado #}
       <div class="flex flex-col">
         <label for="estado" class="font-semibold text-gray-700">Estado</label>
         <select name="estado" id="estado"
@@ -66,8 +67,9 @@
         </select>
       </div>
 
+      {# Botón Filtrar + Limpiar #}
       <div class="flex items-end gap-3">
-        <button type="submit" class="w-full sm:w-auto bg-red-700 hover:bg-red-600 text-white px-4 py-2 rounded transition">Filtrar</button>
+        <button type="submit" class="w-full sm:w-auto bg-red-700 hover:bg-red-600 text-white px-4 h-10 leading-10 rounded transition">Filtrar</button>
         {% if request.GET %}
           {% if list_url_name %}
             <a href="{% url list_url_name %}" class="text-sm text-gray-600 hover:underline">Limpiar</a>
@@ -76,16 +78,21 @@
           {% endif %}
         {% endif %}
       </div>
-    </form>
 
-    {% if page_obj %}
-    <div class="col-span-1 flex flex-col sm:flex-row gap-3 md:justify-end">
-      <a href="{% url 'descargar_excel' 'tablet' %}"
-         class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 py-2 rounded shadow-sm">Descargar Excel</a>
-      <a href="{% url 'upload_excel_tablet' %}"
-         class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 py-2 rounded shadow-sm">Subir Excel</a>
-    </div>
-    {% endif %}
+      {# === Botones verdes alineados a la derecha, MISMA FILA === #}
+      {% if page_obj %}
+      <div class="flex gap-3 md:ml-auto">
+        <a href="{% url 'descargar_excel' 'tablet' %}"
+           class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 h-10 leading-10 rounded shadow-sm">
+          Descargar Excel
+        </a>
+        <a href="{% url 'upload_excel_tablet' %}"
+           class="w-full sm:w-auto text-center bg-gradient-to-br from-green-600 to-green-900 hover:from-green-500 hover:to-green-700 text-white px-4 h-10 leading-10 rounded shadow-sm">
+          Subir Excel
+        </a>
+      </div>
+      {% endif %}
+    </form>
   </div>
 
   {% if page_obj %}
@@ -98,7 +105,6 @@
         <div class="font-semibold text-gray-900 text-sm">
           {{ tablet.marca|capfirst }} {{ tablet.modelo|capfirst }}
         </div>
-        <!-- Ver (móvil, píldora azul unificada) -->
         <a href="{% url 'detalle_tablet' tablet.pk %}"
            class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
                   bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md"
@@ -122,7 +128,6 @@
 
       {% if group_name_singular == 'ADR' or group_name_singular == 'Operador ADR' %}
       <div class="mt-3 flex items-center gap-2">
-        <!-- Editar -->
         <a href="{% url 'edit_tablet' tablet.pk %}"
            class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
                   bg-gradient-to-br from-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-800 shadow-md"
@@ -131,7 +136,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536L9 18H5.5V14.5z"/>
           </svg>
         </a>
-        <!-- Eliminar -->
         <form action="{% url 'delete_tablet' 'tablet' tablet.pk %}" method="post" onsubmit="return confirm('¿Eliminar este registro?');">
           {% csrf_token %}
           <button type="submit"
@@ -178,9 +182,9 @@
         </thead>
         <tbody class="divide-y divide-gray-200 text-sm">
           {% for tablet in page_obj %}
-          <tr class="hover:bg-gray-50 align-top">
-            <td class="px-1 py-1 break-words text-center">{{ tablet.activo|capfirst }}</td>
-            <td class="px-1 py-1 text-center">
+          <tr class="hover:bg-gray-50">
+            <td class="px-1 py-2 text-center">{{ tablet.activo|capfirst }}</td>
+            <td class="px-1 py-2 text-center">
               {% if tablet.estado == 'Operativo' %}
                 <span class="px-1 py-0.5 bg-green-100 text-green-800 rounded-full text-xs">Operativo</span>
               {% elif tablet.estado == 'Dañado' %}
@@ -189,21 +193,20 @@
                 <span class="px-1 py-0.5 bg-red-100 text-red-800 rounded-full text-xs">De Baja</span>
               {% endif %}
             </td>
-            <td class="px-1 py-1 break-words text-center">{{ tablet.marca|capfirst }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ tablet.modelo|capfirst }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ tablet.n_serie }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ tablet.unive }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ tablet.bdo }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ tablet.netbios }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ tablet.ubicacion }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ tablet.creado_por.get_full_name|default:tablet.creado_por.username }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ tablet.fecha_creacion|date:"d/m/Y" }}</td>
-            <td class="px-1 py-1 break-words text-center">{{ tablet.fecha_modificacion|date:"d/m/Y" }}</td>
+            <td class="px-1 py-2 text-center">{{ tablet.marca|capfirst }}</td>
+            <td class="px-1 py-2 text-center">{{ tablet.modelo|capfirst }}</td>
+            <td class="px-1 py-2 text-center">{{ tablet.n_serie }}</td>
+            <td class="px-1 py-2 text-center">{{ tablet.unive }}</td>
+            <td class="px-1 py-2 text-center">{{ tablet.bdo }}</td>
+            <td class="px-1 py-2 text-center">{{ tablet.netbios }}</td>
+            <td class="px-1 py-2 text-center">{{ tablet.ubicacion }}</td>
+            <td class="px-1 py-2 text-center">{{ tablet.creado_por.get_full_name|default:tablet.creado_por.username }}</td>
+            <td class="px-1 py-2 text-center">{{ tablet.fecha_creacion|date:"d/m/Y" }}</td>
+            <td class="px-1 py-2 text-center">{{ tablet.fecha_modificacion|date:"d/m/Y" }}</td>
 
             {% if group_name_singular == 'ADR' or group_name_singular == 'Operador ADR' %}
-            <td class="px-1 py-1 break-words text-center">
+            <td class="px-1 py-2 text-center">
               <div class="inline-flex items-center justify-center gap-2">
-                <!-- Ver (píldora azul unificada) -->
                 <a href="{% url 'detalle_tablet' tablet.pk %}"
                    class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
                           bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md"
@@ -213,7 +216,6 @@
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                 </a>
-                <!-- Editar -->
                 <a href="{% url 'edit_tablet' tablet.pk %}"
                    class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
                           bg-gradient-to-br from-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-800 shadow-md"
@@ -222,7 +224,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536L9 18H5.5V14.5z"/>
                   </svg>
                 </a>
-                <!-- Eliminar -->
                 <form action="{% url 'delete_tablet' 'tablet' tablet.pk %}" method="post" onsubmit="return confirm('¿Eliminar este registro?');" class="inline">
                   {% csrf_token %}
                   <button type="submit"
@@ -230,15 +231,14 @@
                                  bg-gradient-to-br from-rose-600 to-rose-800 hover:from-rose-700 hover:to-rose-900 shadow-md"
                           title="Eliminar">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0_H7"/>
                     </svg>
                   </button>
                 </form>
               </div>
             </td>
             {% else %}
-            <td class="px-1 py-1 break-words text-center">
-              <!-- Ver (solo ojo) para perfiles sin permisos) -->
+            <td class="px-1 py-2 text-center">
               <a href="{% url 'detalle_tablet' tablet.pk %}"
                  class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
                         bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md"

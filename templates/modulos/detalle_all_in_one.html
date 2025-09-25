@@ -4,109 +4,224 @@
 {% block title %}Detalle de All In One{% endblock %}
 
 {% block sidebar %}
-{% include 'componentes/sidebar.html' %}
+  {% include 'componentes/sidebar.html' %}
 {% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-        <div class="bg-gradient-to-br from-red-500 to-red-700 px-6 py-4">
-            <h2 class="text-2xl font-bold text-white">Detalle de All In One</h2>
-        </div>
-        <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
-                <div>
-                    <p class="font-semibold">Activo:</p>
-                    <p>{{ allinone.activo|default_if_none:"N/A" }}</p>
-                </div>
-                <div>
-                    <p class="font-semibold">Marca:</p>
-                    <p>{{ allinone.marca|default_if_none:"N/A" }}</p>
-                </div>
-                <div>
-                    <p class="font-semibold">Modelo:</p>
-                    <p>{{ allinone.modelo|default_if_none:"N/A" }}</p>
-                </div>
-                <div>
-                    <p class="font-semibold">Número de Serie:</p>
-                    <p>{{ allinone.n_serie|default_if_none:"N/A" }}</p>
-                </div>
-                <div>
-                    <p class="font-semibold">UNIVE:</p>
-                    <p>{{ allinone.unive|default_if_none:"N/A" }}</p>
-                </div>
-                <div>
-                    <p class="font-semibold">BDO:</p>
-                    <p>{{ allinone.bdo|default_if_none:"N/A" }}</p>
-                </div>
-                <div>
-                    <p class="font-semibold">Estado:</p>
-                    <p>
-                        <span class="badge rounded-pill {% if allinone.estado == 'Activo' or allinone.estado == 'Operativo' %}bg-success{% elif allinone.estado == 'En reparación' %}bg-warning text-dark{% elif allinone.estado == 'De baja' %}bg-danger{% else %}bg-secondary{% endif %}">
-                            {{ allinone.estado|default_if_none:"N/A" }}
-                        </span>
-                    </p>
-                </div>
-                <div>
-                    <p class="font-semibold">NetBIOS:</p>
-                    <p>{{ allinone.netbios|default_if_none:"N/A" }}</p>
-                </div>
-                <div>
-                    <p class="font-semibold">Ubicación:</p>
-                    <p>{{ allinone.ubicacion|default_if_none:"N/A" }}</p>
-                </div>
-                <div>
-                    <p class="font-semibold">Registrado por:</p>
-                    <p>{{ allinone.creado_por.get_full_name|default_if_none:"N/A" }}</p>
-                </div>
-                <div>
-                    <p class="font-semibold">Fecha de Creación:</p>
-                    <p>{{ allinone.fecha_creacion|date:"d/m/Y H:i"|default_if_none:"N/A" }}</p>
-                </div>
-                </div>
-            </div>
-            <div class="mt-6 flex justify-end space-x-4">
-                <a href="{% url 'edit_all_in_one' allinone.pk %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Editar
-                </a>
-                <a href="{% url 'all_in_one' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                    Volver a la lista
-                </a>
-            </div>
+<style>
+  :root{
+    --adr-primary:#9e0b0b;        /* Rojo ADR principal */
+    --adr-primary-dark:#6f0808;
+    --adr-secondary:#1f2a44;      /* Azul oscuro */
+    --adr-secondary-dark:#172033;
+  }
 
-            <!-- Sección de Historial de Cambios -->
-            <div class="mt-8">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Historial de Modificaciones</h3>
-                {% if historial_cambios %}
-                <div class="table-container w-full">
-                    <table class="min-w-full table-fixed text-center font-sans">
-                        <thead class="border-b font-sans font-semibold bg-gradient-to-tr from-red-500 to-red-700">
-                            <tr>
-                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">Usuario</th>
-                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">Campo Modificado</th>
-                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">Valor Anterior</th>
-                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">Valor Nuevo</th>
-                                <th class="text-start font-sans text-sm font-semibold text-white px-2 py-1 min-w-[150px]">Fecha / Hora</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for cambio in historial_cambios %}
-                                <tr class="{% cycle 'bg-blue-50' 'bg-white' %} border-b border-neutral-100 text-gray-700">
-                                    <td class="text-start text-black px-2 py-1">{{ cambio.usuario }}</td>
-                                    <td class="text-start text-black px-2 py-1">{{ cambio.campo_modificado }}</td>
-                                    <td class="text-start text-black px-2 py-1">{{ cambio.valor_anterior }}</td>
-                                    <td class="text-start text-black px-2 py-1">{{ cambio.valor_nuevo }}</td>
-                                    <td class="text-start text-black px-2 py-1">{{ cambio.fecha_modificacion|date:"d-m-Y H:i:s" }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <p class="text-gray-500">No hay historial de modificaciones para este activo.</p>
-                {% endif %}
-            </div>
-        </div>
+  .panel{background:#fff;border-radius:1.5rem;box-shadow:0 12px 28px rgba(0,0,0,.08);}
+  .header-blue{background:linear-gradient(135deg,#b91c1c 0%,#991b1b 50%,#7f1d1d 100%);}
+
+  /* Badge estado */
+  .badge-pill{display:inline-flex;align-items:center;padding:.28rem .6rem;border-radius:999px;font-size:.75rem;font-weight:700}
+  .badge-ok{background:#dcfce7;color:#166534;border:1px solid #86efac}
+  .badge-warn{background:#fef9c3;color:#713f12;border:1px solid #fde68a}
+  .badge-bad{background:#fee2e2;color:#7f1d1d;border:1px solid #fecaca}
+
+  .section-title{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase}
+  .dt{font-size:.85rem;font-weight:600;color:#64748b}
+  .dd{font-weight:700;color:#0f172a}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Courier New",monospace}
+
+  /* Copiar */
+  .copy-row{display:flex;align-items:center;gap:.5rem}
+  .copy-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;transition:.15s}
+  .copy-btn:hover{background:#f3f4f6}
+  .copy-btn.copied{border-color:#16a34a;box-shadow:0 0 0 2px rgba(34,197,94,.25)}
+  .copy-toast{position:fixed;right:16px;bottom:16px;z-index:9999;background:#0f172a;color:#fff;padding:.6rem .85rem;border-radius:.7rem;box-shadow:0 10px 22px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);transition:opacity .18s,transform .18s}
+  .copy-toast.show{opacity:1;transform:translateY(0)}
+
+  /* Botones */
+  .btn-adr{background:var(--adr-primary);color:#fff;font-weight:700;padding:.6rem 1rem;border-radius:.75rem;box-shadow:0 8px 18px rgba(0,0,0,.12);transition:.15s}
+  .btn-adr:hover{background:var(--adr-primary-dark);}
+  .btn-secondary{background:var(--adr-secondary);color:#fff;font-weight:700;padding:.6rem 1rem;border-radius:.75rem;box-shadow:0 8px 18px rgba(0,0,0,.12);transition:.15s}
+  .btn-secondary:hover{background:var(--adr-secondary-dark);}
+
+  /* Tabla historial */
+  .hist-head{background:linear-gradient(90deg,var(--adr-primary) 0%,var(--adr-primary-dark) 100%);}
+  .hist-head th{color:#fff !important}
+</style>
+
+<div class="mx-auto max-w-5xl px-4 py-8">
+  <div class="panel ring-1 ring-black/5 overflow-hidden">
+
+    <!-- Header -->
+    <div class="header-blue px-6 sm:px-8 py-6 relative">
+      <h1 class="text-white text-2xl sm:text-3xl font-extrabold tracking-tight">Detalle de All In One</h1>
+      {% if allinone.estado %}
+      <span class="badge-pill absolute right-6 top-6
+        {% if allinone.estado == 'Operativo' or allinone.estado == 'Activo' %}badge-ok
+        {% elif allinone.estado == 'En reparación' %}badge-warn
+        {% else %}badge-bad{% endif %}">
+        {{ allinone.estado }}
+      </span>
+      {% endif %}
     </div>
+
+    <!-- Body -->
+    <div class="p-6 sm:p-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+
+        <!-- Identificación -->
+        <div class="space-y-6">
+          <p class="section-title text-slate-500">Identificación</p>
+          <dl class="space-y-4">
+            <div>
+              <dt class="dt">Activo</dt>
+              <dd class="dd">{{ allinone.activo|default_if_none:"N/A" }}</dd>
+            </div>
+            <div>
+              <dt class="dt">Modelo</dt>
+              <dd class="dd">{{ allinone.modelo|default_if_none:"N/A" }}</dd>
+            </div>
+            <div class="copy-row">
+              <div class="flex-1">
+                <dt class="dt">UNIVE</dt>
+                <dd class="dd mono">{{ allinone.unive|default_if_none:"N/A" }}</dd>
+              </div>
+              {% if allinone.unive %}
+              <button class="copy-btn" title="Copiar UNIVE" data-copy="{{ allinone.unive }}">
+                📋
+              </button>
+              {% endif %}
+            </div>
+            <div>
+              <dt class="dt">Ubicación</dt>
+              <dd class="dd">{{ allinone.ubicacion|default_if_none:"N/A" }}</dd>
+            </div>
+            <div>
+              <dt class="dt">Fecha de Creación</dt>
+              <dd class="dd mono">{{ allinone.fecha_creacion|date:"d/m/Y H:i"|default_if_none:"N/A" }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Técnico -->
+        <div class="space-y-6">
+          <p class="section-title text-slate-500">Técnico</p>
+          <dl class="space-y-4">
+            <div>
+              <dt class="dt">Marca</dt>
+              <dd class="dd">{{ allinone.marca|default_if_none:"N/A" }}</dd>
+            </div>
+            <div class="copy-row">
+              <div class="flex-1">
+                <dt class="dt">Número de Serie</dt>
+                <dd class="dd mono">{{ allinone.n_serie|default_if_none:"N/A" }}</dd>
+              </div>
+              {% if allinone.n_serie %}
+              <button class="copy-btn" title="Copiar N° Serie" data-copy="{{ allinone.n_serie }}">📋</button>
+              {% endif %}
+            </div>
+            <div class="copy-row">
+              <div class="flex-1">
+                <dt class="dt">BDO</dt>
+                <dd class="dd mono">{{ allinone.bdo|default_if_none:"N/A" }}</dd>
+              </div>
+              {% if allinone.bdo %}
+              <button class="copy-btn" title="Copiar BDO" data-copy="{{ allinone.bdo }}">📋</button>
+              {% endif %}
+            </div>
+            <div class="copy-row">
+              <div class="flex-1">
+                <dt class="dt">NetBIOS</dt>
+                <dd class="dd mono">{{ allinone.netbios|default_if_none:"N/A" }}</dd>
+              </div>
+              {% if allinone.netbios %}
+              <button class="copy-btn" title="Copiar NetBIOS" data-copy="{{ allinone.netbios }}">📋</button>
+              {% endif %}
+            </div>
+            <div>
+              <dt class="dt">Registrado por</dt>
+              <dd class="dd">{{ allinone.creado_por.get_full_name|default_if_none:"N/A" }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="mt-8 border-t border-slate-200"></div>
+
+      <!-- Acciones -->
+      <div class="mt-6 flex flex-wrap justify-end gap-3">
+        <a href="{% url 'edit_all_in_one' allinone.pk %}" class="btn-adr">✏️ Editar</a>
+        <a href="{% url 'all_in_one' %}" class="btn-secondary">☰ Volver a la lista</a>
+        <button onclick="window.print()" class="btn-ghost border px-4 py-2 rounded-lg">🖨️ Imprimir</button>
+      </div>
+
+      <!-- Historial -->
+      <div class="mt-10">
+        <h3 class="text-xl font-bold text-slate-900 mb-4">Historial de Modificaciones</h3>
+        {% if historial_cambios %}
+        <div class="overflow-x-auto rounded-xl ring-1 ring-black/5">
+          <table class="min-w-full text-sm">
+            <thead class="hist-head">
+              <tr>
+                <th class="px-3 py-2 text-left font-semibold">Usuario</th>
+                <th class="px-3 py-2 text-left font-semibold">Campo</th>
+                <th class="px-3 py-2 text-left font-semibold">Anterior</th>
+                <th class="px-3 py-2 text-left font-semibold">Nuevo</th>
+                <th class="px-3 py-2 text-left font-semibold">Fecha / Hora</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in historial_cambios %}
+              <tr class="{% cycle 'bg-white' 'bg-slate-50' %} border-b border-slate-100">
+                <td class="px-3 py-2">{{ c.usuario }}</td>
+                <td class="px-3 py-2">{{ c.campo_modificado }}</td>
+                <td class="px-3 py-2">{{ c.valor_anterior }}</td>
+                <td class="px-3 py-2">{{ c.valor_nuevo }}</td>
+                <td class="px-3 py-2">{{ c.fecha_modificacion|date:"d-m-Y H:i:s" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+          <p class="text-slate-500">No hay historial de modificaciones para este activo.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Toast -->
+<div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
+
+<script>
+  document.addEventListener('click', async (e)=>{
+    const btn = e.target.closest('.copy-btn');
+    if(!btn) return;
+    const value = btn.getAttribute('data-copy');
+    if(!value) return;
+
+    try{
+      await navigator.clipboard.writeText(value);
+    }catch(_){
+      const ta=document.createElement('textarea');
+      ta.value=value; ta.style.position='fixed'; ta.style.left='-9999px';
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); }catch(__){}
+      document.body.removeChild(ta);
+    }
+
+    btn.classList.add('copied');
+    const prev = btn.textContent;
+    btn.textContent = '✔';
+    setTimeout(()=>{ btn.classList.remove('copied'); btn.textContent = prev; }, 900);
+
+    const toast=document.getElementById('copyToast');
+    toast.textContent='Copiado: '+value;
+    toast.classList.add('show');
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer=setTimeout(()=>toast.classList.remove('show'), 1400);
+  });
+</script>
 {% endblock %}

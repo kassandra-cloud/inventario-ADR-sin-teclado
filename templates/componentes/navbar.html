@@ -4,31 +4,31 @@
 {% if user.is_authenticated %}
   {% with g=group_name_singular|default:"Usuario"|lower %}
     {% if g == "usuario" %}
-      <nav class="fixed top-0 left-0 w-full h-12 md:h-14 z-[100] border-b border-black/5 bg-zinc-900 text-white backdrop-blur-sm">
+      <nav class="fixed top-0 left-0 w-full h-12 md:h-16 z-[100] border-b border-black/5 bg-zinc-900 text-white backdrop-blur-sm">
     {% elif g == "adr" %}
-      <nav class="fixed top-0 left-0 w-full h-12 md:h-14 z-[100] border-b border-black/5 bg-gradient-to-tr from-amber-600 to-amber-900 text-white backdrop-blur-sm">
+      <nav class="fixed top-0 left-0 w-full h-12 md:h-16 z-[100] border-b border-black/5 bg-gradient-to-tr from-amber-600 to-amber-900 text-white backdrop-blur-sm">
     {% elif g == "operador adr" %}
-      <nav class="fixed top-0 left-0 w-full h-12 md:h-14 z-[100] border-b border-black/5 bg-gradient-to-tr from-red-600 to-red-900 text-white backdrop-blur-sm">
+      <nav class="fixed top-0 left-0 w-full h-12 md:h-16 z-[100] border-b border-black/5 bg-gradient-to-tr from-red-600 to-red-900 text-white backdrop-blur-sm">
     {% elif g == "auxiliar operador adr" %}
-      <nav class="fixed top-0 left-0 w-full h-12 md:h-14 z-[100] border-b border-black/5 bg-gradient-to-tr from-red-500 to-fuchsia-900 text-white backdrop-blur-sm">
+      <nav class="fixed top-0 left-0 w-full h-12 md:h-16 z-[100] border-b border-black/5 bg-gradient-to-tr from-red-500 to-fuchsia-900 text-white backdrop-blur-sm">
     {% elif g == "alumno en práctica" or g == "alumno en practica" or g == "alumnos en práctica" or g == "alumnos en practica" %}
-      <nav class="fixed top-0 left-0 w-full h-12 md:h-14 z-[100] border-b border-black/5 bg-gradient-to-tr from-gray-500 to-gray-900 text-white backdrop-blur-sm">
+      <nav class="fixed top-0 left-0 w-full h-12 md:h-16 z-[100] border-b border-black/5 bg-gradient-to-tr from-gray-500 to-gray-900 text-white backdrop-blur-sm">
     {% else %}
-      <nav class="fixed top-0 left-0 w-full h-12 md:h-14 z-[100] border-b border-black/5 bg-gradient-to-tr from-red-700 to-red-900 text-white backdrop-blur-sm">
+      <nav class="fixed top-0 left-0 w-full h-12 md:h-16 z-[100] border-b border-black/5 bg-gradient-to-tr from-red-700 to-red-900 text-white backdrop-blur-sm">
     {% endif %}
   {% endwith %}
 {% else %}
-  <nav class="fixed top-0 left-0 w-full h-12 md:h-14 z-[100] bg-zinc-900 text-white backdrop-blur-sm">
+  <nav class="fixed top-0 left-0 w-full h-12 md:h-16 z-[100] bg-zinc-900 text-white backdrop-blur-sm">
 {% endif %}
 
-  {# ---------- Contenido del navbar (GRID balanceado) ---------- #}
+  {# ---------- Contenido del navbar ---------- #}
   <div class="max-w-screen-2xl mx-auto px-2 sm:px-3 h-full
-              grid grid-cols-[1fr_auto_1fr] items-center">
+              grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 sm:gap-x-4 md:gap-x-6">
 
-    {# Columna IZQUIERDA: hamburguesa #}
-    <div class="flex items-center gap-2 justify-start">
+    {# IZQUIERDA: hamburguesa #}
+    <div class="flex items-center justify-start">
       <button id="hamburgerButton"
-              class="w-10 h-10 grid place-items-center rounded-md/2 focus:outline-none focus:ring-2 focus:ring-white/40"
+              class="w-10 h-10 grid place-items-center focus:outline-none focus:ring-2 focus:ring-white/40"
               aria-label="Abrir menú">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -37,22 +37,21 @@
       </button>
     </div>
 
-    {# Columna CENTRO: icono + título más a la izquierda #}
-    <div class="flex items-center gap-2 justify-center justify-self-start -ml-10">
+    {# CENTRO: logo + título #}
+    <div class="flex items-center gap-2 justify-center justify-self-center">
       <img src="{% static 'imagenes/favicon.ico' %}" alt="Logo Inacap"
            class="w-7 h-7 object-contain">
       <h1 class="font-semibold leading-none text-white
                  text-sm sm:text-base md:text-lg lg:text-xl text-center
-                 truncate max-w-[60vw]">
+                 truncate max-w-[55vw] md:max-w-[50vw]">
         PLATAFORMA DE INVENTARIO ADR
       </h1>
     </div>
 
-    {# Columna DERECHA: info usuario + avatar + acciones #}
-    <div class="flex items-center justify-end gap-2 sm:gap-3">
+    {# DERECHA: usuario + avatar + acciones #}
+    <div class="min-w-0 flex items-center justify-end gap-2 sm:gap-3">
       {% if user.is_authenticated %}
-        {# Limitar ancho para no sobreponer el título #}
-        <span class="text-white hidden lg:block text-sm">
+        <span class="text-white text-sm truncate max-w-[200px]">
           🟢 {{ user.first_name|capfirst }} {{ user.last_name|capfirst }} | {{ group_name_singular }}
         </span>
       {% endif %}
@@ -85,7 +84,7 @@
             Cerrar Sesión
           </button>
           <button type="submit"
-                  class="md:hidden w-10 h-10 grid place-items-center rounded-md/2 focus:outline-none focus:ring-2 focus:ring-white/40"
+                  class="md:hidden w-10 h-10 grid place-items-center focus:outline-none focus:ring-2 focus:ring-white/40"
                   title="Cerrar sesión" aria-label="Cerrar sesión">
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M16 17l5-5-5-5v3H9v4h7v3z"></path>

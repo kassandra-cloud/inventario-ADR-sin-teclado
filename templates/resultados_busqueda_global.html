@@ -10,65 +10,51 @@
     --adr-primary-dark:#7f0707;
   }
 
-  /* --- Encabezado de la card en rojo --- */
-  .card-header.card-header-adr{
-    background: var(--adr-primary) !important;
-    color:#fff !important;
-    border-radius:12px 12px 0 0;
-    border:0;
-  }
-
-  /* --- Chip contador en rojo --- */
-  .count-chip{
-    background: var(--adr-primary) !important;
-    color:#fff !important;
-    font-weight:700;
-    padding:.25rem .6rem;
-    border-radius:999px;
-    border:1px solid var(--adr-primary-dark);
-    line-height:1;
-  }
-
-  /* --- Thead totalmente rojo --- */
-  .table>thead>tr>th{
-    background-color: var(--adr-primary) !important;
-    color:#fff !important;
-    text-align:center;
-    border:1px solid #fff !important;
-    position:sticky;
-    top:0;
-    z-index:2;
-  }
-
-  /* Botón Buscar rojo */
-  .btn-search{
-    background:var(--adr-primary) !important;
-    color:#fff !important;
-    border:none !important;
-    font-weight:600;
-  }
-  .btn-search:hover{ background:var(--adr-primary-dark) !important; }
+  .card-header.card-header-adr{ background:var(--adr-primary)!important; color:#fff!important; border-radius:12px 12px 0 0; border:0; }
+  .count-chip{ background:var(--adr-primary)!important; color:#fff!important; font-weight:700; padding:.25rem .6rem; border-radius:999px; border:1px solid var(--adr-primary-dark); line-height:1; }
+  .table>thead>tr>th{ background-color:var(--adr-primary)!important; color:#fff!important; text-align:center; border:1px solid #fff!important; position:sticky; top:0; z-index:2; }
+  .btn-search{ background:var(--adr-primary)!important; color:#fff!important; border:none!important; font-weight:600; }
+  .btn-search:hover{ background:var(--adr-primary-dark)!important; }
 
   .td-trunc{ max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .font-mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace; letter-spacing:.2px; }
-
-  /* ancho para las dos pastillas */
   th.actions-col, td.actions-col{ white-space:nowrap; width:100px; }
+
+  /* Botón copiar */
+  .copy-btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:26px; height:26px; margin-left:.35rem; border:1px solid #d1d5db;
+    background:#fff; border-radius:999px; cursor:pointer;
+  }
+  .copy-btn:hover{ background:#f3f4f6; }
+  .copy-btn.copied{ border-color:#16a34a; box-shadow:0 0 0 2px rgba(34,197,94,.25); }
+
+  /* Toast copiado */
+  .copy-toast{
+    position:fixed; right:16px; bottom:16px; z-index:9999;
+    background:#111827; color:#fff; padding:.55rem .8rem; border-radius:.6rem;
+    box-shadow:0 10px 20px rgba(0,0,0,.25); opacity:0; transform:translateY(10px);
+    transition:opacity .18s ease, transform .18s ease;
+    font-size:.95rem;
+  }
+  .copy-toast.show{ opacity:1; transform:translateY(0); }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4 mt-md-5">
 
-  <!-- Barra de búsqueda -->
-    <!-- Barra de búsqueda única -->
-    <div class="buscadorContainer" style="margin: 20px auto; width: fit-content; text-align: center; border-radius: 10px; overflow: hidden; background: #f5f5f5; padding:15px;">
-        <form onsubmit="submitSearch(event)" style="display: inline-flex; gap: 10px;">
-            <input type="text" id="search" name="q" placeholder="Escanea o escribe código/nombre" style="padding: 10px; width: 300px; border-radius: 5px; border: 1px solid #ccc;" value="{{ query|default_if_none:'' }}">
-            <button type="submit" style="padding: 10px 20px; border-radius: 5px; border: none; background-color: #9e0909; color: #fff; cursor:pointer;">Buscar</button>
-        </form>
-    </div>
-
+  <!-- Buscador -->
+  <div class="buscadorContainer" style="margin: 20px auto; width: fit-content; text-align: center; border-radius: 10px; overflow: hidden; background: #f5f5f5; padding:15px;">
+    <form method="get" style="display: inline-flex; gap: 10px;">
+      <input type="text" id="search" name="q" placeholder="Escanea o escribe código/nombre"
+             style="padding: 10px; width: 300px; border-radius: 5px; border: 1px solid #ccc;"
+             value="{{ query|default_if_none:'' }}">
+      <button type="submit" class="btn-search" style="padding: 10px 20px; border-radius: 5px; border:none; cursor:pointer;">
+        Buscar
+      </button>
+    </form>
+  </div>
 
   {% if resultados_por_modelo %}
     {% for item in resultados_por_modelo %}
@@ -96,14 +82,16 @@
                   <th>Registrado por</th>
                   <th>Fecha Creación</th>
                   <th>Fecha Modificación</th>
-                  {% if item.modelo_name == "Notebook" %}<th>Asignado a</th>{% endif %}
+                  {% if item.modelo_name == "Notebook" or item.modelo_name == "Monitor" %}<th>Asignado a</th>{% endif %}
                   <th class="text-end actions-col">Acciones</th>
                 </tr>
               </thead>
+
               <tbody>
                 {% for r in item.resultados %}
                 <tr>
                   <td class="td-trunc">{{ r.activo|default_if_none:""|capfirst }}</td>
+
                   <td>
                     {% with r.estado as est %}
                       <span class="badge {% if est == 'Activo' or est == 'Operativo' %}bg-success
@@ -114,38 +102,101 @@
                       </span>
                     {% endwith %}
                   </td>
+
                   <td>{{ r.marca|default_if_none:""|capfirst }}</td>
                   <td class="td-trunc">{{ r.modelo|default_if_none:""|capfirst }}</td>
-                  <td class="font-mono td-trunc">{{ r.n_serie|default_if_none:"" }}</td>
-                  <td class="font-mono">{{ r.unive|default_if_none:"" }}</td>
-                  <td>{{ r.bdo|default_if_none:"" }}</td>
-                  <td class="font-mono td-trunc">{{ r.netbios|default_if_none:"" }}</td>
+
+                  <!-- N° Serie -->
+                  <td class="font-mono td-trunc">
+                    <span class="copy-text">{{ r.n_serie|default_if_none:"" }}</span>
+                    {% if r.n_serie %}
+                    <button type="button" class="copy-btn" data-copy-value="{{ r.n_serie }}" title="Copiar N° Serie" aria-label="Copiar N° Serie">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </td>
+
+                  <!-- UNIVE -->
+                  <td class="font-mono td-trunc">
+                    <span class="copy-text">{{ r.unive|default_if_none:"" }}</span>
+                    {% if r.unive %}
+                    <button type="button" class="copy-btn" data-copy-value="{{ r.unive }}" title="Copiar UNIVE" aria-label="Copiar UNIVE">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </td>
+
+                  <!-- BDO -->
+                  <td class="font-mono td-trunc">
+                    <span class="copy-text">{{ r.bdo|default_if_none:"" }}</span>
+                    {% if r.bdo %}
+                    <button type="button" class="copy-btn" data-copy-value="{{ r.bdo }}" title="Copiar BDO" aria-label="Copiar BDO">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </td>
+
+                  <!-- NetBios -->
+                  <td class="font-mono td-trunc">
+                    <span class="copy-text">{{ r.netbios|default_if_none:"" }}</span>
+                    {% if r.netbios %}
+                    <button type="button" class="copy-btn" data-copy-value="{{ r.netbios }}" title="Copiar NetBios" aria-label="Copiar NetBios">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </td>
+
                   <td class="td-trunc">{{ r.ubicacion|default_if_none:""|capfirst }}</td>
-                  <td class="td-trunc">{{ r.registrado_por|default_if_none:"" }}</td>
+
+                  <!-- Registrado por -->
+                  <td class="td-trunc">
+                    {% if r.creado_por %}
+                      {% if r.creado_por.first_name or r.creado_por.last_name %}
+                        {{ r.creado_por.first_name }} {{ r.creado_por.last_name }}
+                      {% else %}
+                        {{ r.creado_por.username }}
+                      {% endif %}
+                    {% else %}
+                      N/A
+                    {% endif %}
+                  </td>
+
+                  <!-- Fechas -->
                   <td class="font-mono">{{ r.fecha_creacion|date:"Y-m-d H:i" }}</td>
                   <td class="font-mono">{{ r.fecha_modificacion|date:"Y-m-d H:i" }}</td>
 
                   {% if item.modelo_name == "Notebook" or item.modelo_name == "Monitor" %}
-                  <td class="td-trunc">{{ r.asignado_a|default_if_none:""|capfirst }}</td>
+                    <td class="td-trunc">{{ r.asignado_a|default_if_none:""|capfirst }}</td>
                   {% endif %}
 
                   <!-- Acciones -->
                   <td class="text-end actions-col">
-                    <div class="flex items-center gap-1 justify-end">
-                      <!-- Ver (azul pill pequeño) -->
+                    <div class="d-flex justify-content-end gap-1">
+                      <!-- Ver -->
                       <a href="{% url 'detalle_activo_busqueda' model_name=item.modelo_name|lower pk=r.pk %}?q={{ query|urlencode }}"
-                         class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
-                                bg-gradient-to-br from-blue-500 to-blue-700
-                                hover:from-blue-600 hover:to-blue-800 shadow-md"
-                         title="Ver" aria-label="Ver">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         class="btn p-0 d-inline-flex align-items-center justify-content-center"
+                         title="Ver" aria-label="Ver"
+                         style="width:32px;height:32px;border-radius:999px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M1.5 12s4.5-7.5 10.5-7.5S22.5 12 22.5 12s-4.5 7.5-10.5 7.5S1.5 12 1.5 12z"/>
-                          <circle cx="12" cy="12" r="3" />
+                          <circle cx="12" cy="12" r="3"></circle>
                         </svg>
                       </a>
 
-                      <!-- Modificar (ámbar pill pequeño) -->
+                      <!-- Modificar (IF/ELIF por modelo) -->
                       {% if item.modelo_name|lower == 'allinone' %}
                         <a href="{% url 'edit_all_in_one' pk=r.pk %}"
                       {% elif item.modelo_name|lower == 'allinoneadmins' %}
@@ -167,20 +218,20 @@
                       {% elif item.modelo_name|lower == 'tablet' %}
                         <a href="{% url 'edit_tablet' pk=r.pk %}"
                       {% endif %}
-                           class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white
-                                  bg-gradient-to-br from-amber-500 to-amber-700
-                                  hover:from-amber-600 hover:to-amber-800 shadow-md"
-                           title="Modificar" aria-label="Modificar">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M15.232 5.232l3.536 3.536L9 18H5.5V14.5z"/>
-                          </svg>
-                        </a>
+                         class="btn p-0 d-inline-flex align-items-center justify-content-center"
+                         title="Modificar" aria-label="Modificar"
+                         style="width:32px;height:32px;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#b45309);color:#fff;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.232 5.232l3.536 3.536L9 18H5.5V14.5z"/>
+                        </svg>
+                      </a>
                     </div>
                   </td>
                 </tr>
                 {% endfor %}
               </tbody>
+
             </table>
           </div>
         </div>
@@ -202,4 +253,43 @@
     </a>
   </div>
 </div>
+
+<!-- Toast -->
+<div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
+
+<script>
+  // Copiar con delegación
+  document.addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('.copy-btn');
+    if (!btn) return;
+    const value = btn.getAttribute('data-copy-value');
+    if (!value) return;
+
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = value;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (_) {}
+      document.body.removeChild(ta);
+    }
+
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 900);
+    showCopyToast('Copiado: ' + value);
+  });
+
+  function showCopyToast(msg){
+    const el = document.getElementById('copyToast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(window.__copyToastTimer);
+    window.__copyToastTimer = setTimeout(()=> el.classList.remove('show'), 1400);
+  }
+</script>
 {% endblock %}
